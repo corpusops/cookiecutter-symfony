@@ -1,4 +1,4 @@
-# Init a django project
+# Init a symfony project
 
 Idea is to create it with a wonderful python tool called
 [cookiecutter](https://github.com/audreyr/cookiecutter)
@@ -10,17 +10,21 @@ virtualenv --python=python3 ~/tools/cookiecutter
 ~/tools/cookiecutter/bin/pip install cookiecutter
 ```
 
-## Create back project
+## Create a new Symfony project
 
-- create on gitlab your project
-- then locally (replace with your values)
+- create on gitlab your project (empty)
+- then locally generate the base files (replace with your values)
 
     ```sh
-    cd ~/.cookiecutters/cookiecutter-django \
+    # activate cookiecutter env
+    . ~/tools/cookiecutter/bin/activate
+    # you should have this project already cloned in ~/.cookiecutters/cookiecutter-symfony
+    # refresh it (or git clone if not done yet)
+    cd ~/.cookiecutters/cookiecutter-symfony \
         && git fetch origin && git reset --hard origin/master \
         && cd -
     cookiecutter --no-input -f -o ~/out_dir \
-        https://github.com/corpusops/cookiecutter-django.git \
+        https://github.com/corpusops/cookiecutter-symfony.git \
         name=foo \
         tld_domain=mydomain.com \
         git_server=git.foo.com \
@@ -36,7 +40,7 @@ virtualenv --python=python3 ~/tools/cookiecutter
 -  notable options behaviors:
     - ``use_submodule_for_deploy_code=``: copy deploy submodule inside
       project for a standalone deployment (no common deploy)
-    - ``py_ver=X.Yy``: python version to use
+    - ``php_ver=X.Y``: php version to use
     - ``remove_cron=y``: will remove cron image and related configuration
     - ``enable_cron=``: will soft disable (comment crontab) without removing cron.
     - ``(qa|staging)_host=``: will disable generation for this env
@@ -46,6 +50,8 @@ virtualenv --python=python3 ~/tools/cookiecutter
       autofill ``register_user`` and ``registry_password``.
     - ``db_mode=<mode>``: one of ``postgres|postgis|mysql``
     - ``haproxy=y``: generate haproxy related jobs
+
+- Push the generated files (here on `~/out_dir`) to your new project
 
 
 ## Fill ansible inventory
@@ -99,8 +105,8 @@ copy/paste/adapt the content
 ## Init dev and and test locally
 ```sh
 ./control.sh init  # init conf files
-./control.sh build django
-./control.sh build  # will be faster as many images are based on django
+./control.sh build symfony
+./control.sh build  # will be faster as many images are based on symfony
 ```
 
 ## Push to gitlab
@@ -112,13 +118,13 @@ copy/paste/adapt the content
 - Deploy manually one time to see everything is in place<br/>
   Remember:
     - Your local copy is synced as the working directory on target env (with exclusions, see playbooks)
-    - The ``cops_django_docker_tag`` controls which docker image is deployed.
+    - The ``cops_symfony_docker_tag`` controls which docker image is deployed.
 
     ```sh
     .ansible/scripts/call_ansible.sh .ansible/playbooks/deploy_key_setup.yml
     .ansible/scripts/call_ansible.sh -vvv .ansible/playbooks/ping.yml -l dev  # or staging
     .ansible/scripts/call_ansible.sh -vvv .ansible/playbooks/app.yml \
-         -e "{cops_django_docker_tag: dev}" -l dev  # or staging
+         -e "{cops_symfony_docker_tag: dev}" -l dev  # or staging
     ```
 
 ## Update project

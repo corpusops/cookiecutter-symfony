@@ -14,7 +14,7 @@ use_submodule_for_deploy_code = bool(
     '{{cookiecutter.use_submodule_for_deploy_code}}'.strip())
 
 # Workaround cookiecutter no support of symlinks
-TEMPLATE = 'cookiecutter-django'
+TEMPLATE = 'cookiecutter-symfony'
 SYMLINKS_DIRS = {
     ".ansible/playbooks/roles/{{cookiecutter.app_type}}_vars":
     "../../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/roles/{{cookiecutter.app_type}}_vars",  #noqa
@@ -86,11 +86,11 @@ fi
 {% if not cookiecutter['{0}_host'.format(i)]%}
 git rm -rf \
    .ansible/inventory/group_vars/{{i}} \
-   src/{{cookiecutter.django_project_name}}/settings/instances/{{i}}* \
+   src/{{cookiecutter.symfony_project_name}}/settings/instances/{{i}}* \
         || /bin/true
 rm -rfv \
    .ansible/inventory/group_vars/{{i}} \
-   src/{{cookiecutter.django_project_name}}/settings/instances/{{i}}*
+   src/{{cookiecutter.symfony_project_name}}/settings/instances/{{i}}*
 {% endif %}
 {% endfor %}
 {% if cookiecutter.no_private %}
@@ -106,12 +106,12 @@ sed -i -re \
 	"s/PY_VER=.*/PY_VER={{cookiecutter.py_ver}}/g" \
 	Dockerfile
 sed -i -re \
-	"s/project/{{cookiecutter.django_project_name}}/g" \
+	"s/project/{{cookiecutter.symfony_project_name}}/g" \
 	Dockerfile
 fi
 if ( find sys/*sh 2>/dev/null );then
 sed -i -re \
-	"s/project/{{cookiecutter.django_project_name}}/g" \
+	"s/project/{{cookiecutter.symfony_project_name}}/g" \
 	sys/*sh
 fi
 set +x
