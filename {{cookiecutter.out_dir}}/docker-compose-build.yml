@@ -4,7 +4,7 @@ x-images:
     build:
       context: "."
       args:
-        PY_VER: "${DJANGO_PY_VER:-{{cookiecutter.py_ver}}}"
+        PHP_VER: "${SYMFONY_PHP_VER:-{{cookiecutter.php_ver}}}"
 services:
   {%- if not cookiecutter.remove_cron %}
   cron: {<<: [ *{{cookiecutter.app_type}} ]}

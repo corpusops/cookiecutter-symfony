@@ -1,0 +1,64 @@
+yum-utils
+bzip2
+unzip
+sudo
+less
+nano
+wget
+curl
+git
+ca-certificates
+gettext
+binutils
+tzdata
+gettext
+gcc
+gcc-c++
+make
+libxslt-1.1
+{% if 'post' in cookiecutter.db_mode %}postgresql{% endif %}
+{% if 'mysql' in cookiecutter.db_mode %}mysql{% endif %}
+unzip
+autoconf
+automake
+groff
+libtool
+m4
+poppler-utils
+python-imaging
+python-setuptools
+vim
+lsof
+php
+php-fpm
+php-bcmath
+php-cli
+php-common
+php-dba
+php-gd
+php-imap
+php-intl
+php-mbstring
+php-mcrypt
+php-mysqlnd
+php-pdo
+php-pear
+php-pear-Console-Table
+php-pear-console-color2
+php-pecl-apcu
+php-pecl-igbinary
+php-pecl-imagick
+# this one makes a 5.6 downgrade
+# php-pecl-jsonc
+php-pecl-memcached
+php-pecl-msgpack
+php-pecl-uploadprogress
+php-pecl-zip
+php-pgsql
+php-process
+php-soap
+# php-suhosin
+# php-symfony-common
+# php-symfony-yaml
+php-xml
+php-xmlrpc

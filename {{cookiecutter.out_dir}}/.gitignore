@@ -1,21 +1,42 @@
+# PHP
+
 # Python
 *.pyc
 __pycache__
 *.egg-info
 *.mo
 
-# {{cookiecutter.app_type.upper()}} local settings
-/src/{{cookiecutter.django_settings.replace('.', '/')}}/local.py
-
 # Docker local settings
 /.env
 /docker.env
 /netrc
+/docker-compose.override.yml
+/logs/
 
 # IDE settings
 .vscode
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 .idea
 .~lock*
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+
+# compiled output
+/dist
+/tmp
+/angular/**/*.js
+/angular/**/*.json
+!/angular/**/tsconfig.*.json
+/angular/**/*.map
+
+# dependencies
+/node_modules
 
 # Virtualenv
 /venv/
@@ -27,8 +48,20 @@ __pycache__
 /local/
 !/local/regen.sh
 
-{% if cookiecutter.with_celery %}
-# celery
-/src/celerybeat-schedule.db
-/src/celerybeat.pid
-{% endif %}
+# misc
+/.sass-cache
+/connect.lock
+/coverage/*
+/libpeerconnection.log
+npm-debug.log
+testem.log
+yarn-error.log
+/typings
+*~
+
+# e2e
+/e2e/*.js
+/e2e/*.map
+
+#System Files
+.DS_Store

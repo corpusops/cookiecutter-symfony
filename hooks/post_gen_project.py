@@ -41,7 +41,7 @@ SYMLINKS_FILES = {
     ".ansible/playbooks/site.yml":
     "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/site.yml",  #noqa
     # "tox.ini":    "{{cookiecutter.deploy_project_dir}}/tox.ini",  #noqa
-    "Dockerfile": "{{cookiecutter.deploy_project_dir}}/Dockerfile",  #noqa
+    "Dockerfile": "{{cookiecutter.deploy_project_dir}}/Dockerfile-{{cookiecutter.base_os}}",  #noqa
 }
 SYMLINKS = {}
 SYMLINKS.update(SYMLINKS_DIRS)
@@ -75,13 +75,6 @@ if [ ! -e "{{cookiecutter.deploy_project_dir}}/.git" ];then
 """.format(**locals())
 EGITSCRIPT = """
 {%raw%}vv() {{ echo "$@">&2;"$@"; }}{%endraw%}
-{% if cookiecutter.remove_cron %}
-if [ -e Dockerfile ] && [ ! -h Dockerfile ];then
-    rm -f crontab
-    sed -i -re "/ADD .*cron/d" Dockerfile
-    sed -i -re "/CMD .*cron/d" Dockerfile
-fi
-{% endif %}
 {% for i in ['dev', 'prod', 'qa', 'staging'] -%}
 {% if not cookiecutter['{0}_host'.format(i)]%}
 git rm -rf \
@@ -93,17 +86,9 @@ rm -rfv \
    src/{{cookiecutter.symfony_project_name}}/settings/instances/{{i}}*
 {% endif %}
 {% endfor %}
-{% if cookiecutter.no_private %}
-rm -rf private
-sed -i -re "/ADD private/d" Dockerfile
-{% endif %}
-{% if cookiecutter.no_lib %}
-sed -i -re "/ADD lib/d" Dockerfile
-rm -rf lib
-{% endif %}
 if [ -e Dockerfile ] && [ ! -h Dockerfile ];then
 sed -i -re \
-	"s/PY_VER=.*/PY_VER={{cookiecutter.py_ver}}/g" \
+	"s/PHP_VER=.*/PHP_VER={{cookiecutter.php_ver}}/g" \
 	Dockerfile
 sed -i -re \
 	"s/project/{{cookiecutter.symfony_project_name}}/g" \
@@ -130,9 +115,6 @@ while read f;do
 done < <( find -type f|egrep -v "((^./(\.tox|\.git|local))|/static/)"; )
 {% endif %}
 set -x
-{% if not cookiecutter.with_celery %}
-find src -name celery.py -delete
-{% endif %}
         """
 
 MOTD = '''

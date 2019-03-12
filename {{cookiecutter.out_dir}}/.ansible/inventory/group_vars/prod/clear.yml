@@ -2,3 +2,4 @@
 cops_{{cookiecutter.app_type}}_deploy_env: prod
 cops_{{cookiecutter.app_type}}_hostname:  "{{cookiecutter.prod_domain}}"
 cops_{{cookiecutter.app_type}}_alternate_hostnames: {{cookiecutter.prod_alternate_domains.split(',')}}
+cops_symfony_http_protect_password: ""

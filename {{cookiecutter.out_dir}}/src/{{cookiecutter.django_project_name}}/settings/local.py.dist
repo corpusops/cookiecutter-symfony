@@ -1,9 +1,0 @@
-# Production
-# ALLOWED_HOSTS = []
-# CORS_ORIGIN_WHITELIST = ()
-# SECRET_KEY = ''
-# DEFAULT_FROM_EMAIL = ''
-# SERVER_EMAIL = ''
-# ADMINS = ()
-SECRET_KEY = 'super-hot-secret-123456789'
-# vim:set ft=python:

@@ -4,35 +4,21 @@ x-images:
     command: 'sh -c "while true;do echo notstarted;sleep 65000;done"'
     entrypoint: 'sh -c "while true;do echo notstarted;sleep 65000;done"'
     restart: "no"
-  django: &django
-    environment: &django_env
-       DJANGO_SETTINGS_MODULE: "${DJANGO_SETTINGS_MODULE:-{{cookiecutter.django_settings}}.dev}"
-       NO_MIGRATE: "1"
-       NO_COLLECT_STATIC: "1"
-       NO_STATICS: "1"
-    volumes: &django_volumes
-      {%-if cookiecutter.use_submodule_for_deploy_code %}
-      - ./{{cookiecutter.deploy_project_dir}}/sys/sudoer:/etc/sudoers.d/$APP_TYPE
-      - ./{{cookiecutter.deploy_project_dir}}/sys/init.sh:/code/sys/init.sh
-      - ./{{cookiecutter.deploy_project_dir}}/sys/etc/supervisor.d:/code/etc/supervisor.d
-      - ./{{cookiecutter.deploy_project_dir}}:/code/{{cookiecutter.deploy_project_dir}}
-      {%-else %}
+  symfony: &symfony
+    environment: &symfony_env
+       SYMFONY_SETTINGS_MODULE: "${SYMFONY_SETTINGS_MODULE:-{{cookiecutter.symfony_settings}}.dev}"
+       # NO_MIGRATE: "1"
+       # NO_COLLECT_STATIC: "1"
+       # NO_COMPOSER: "1"
+    volumes: &symfony_volumes
       - ./sys/sudoer:/etc/sudoers.d/$APP_TYPE
-      - ./sys/init.sh:/code/sys/init.sh
+      - ./sys/init.sh:/code/init/init.sh
       - ./sys/etc/supervisor.d:/code/etc/supervisor.d
-      {%- endif%}
-{%- if not cookiecutter.no_lib %}
-      - ./lib:/code/lib
-{%- endif%}
       - ./local:/code/local
-      - ./src:/code/src
+      - ./app:/code/app
 {%- if not cookiecutter.no_private %}
       - ./private:/code/private
 {%- endif%}
-      - ./tox.ini:/code/tox.ini
-      - ./.tox:/code/.tox
-      - ./requirements.txt:/code/requirements.txt
-      - ./requirements-dev.txt:/code/requirements-dev.txt
 services:
   nginx: {<<: [ *bypass ]}
   # uncomment to activate in dev
@@ -42,22 +28,16 @@ services:
   #   - 80: 80
   #   - 443: 443
   backup: {<<: [ *bypass ]}
+  cron: 
+    build:
+      context: "."
+      args:
+        PHP_VER: "${SYMFONY_PHP_VER:-7.2}"
+    <<: [ *bypass ]
   {{cookiecutter.app_type}}:
-    <<: [ *django ]
+    <<: [ *symfony ]
     environment:
-      <<: [ *django_env ]
+      <<: [ *symfony_env ]
       IMAGE_MODE: fg
     ports:
       - "8000:8000"
-{% if cookiecutter.with_celery %}
-  celery-beat: &celery
-    <<: [ *django ]
-    environment:
-      <<: [ *django_env ]
-      IMAGE_MODE: celery_beat
-  celery-worker:
-    <<: [ *celery ]
-    environment:
-      <<: [ *django_env ]
-      IMAGE_MODE: celery_worker
-{% endif -%}

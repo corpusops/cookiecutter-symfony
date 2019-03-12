@@ -16,16 +16,18 @@ virtualenv --python=python3 ~/tools/cookiecutter
 - then locally generate the base files (replace with your values)
 
     ```sh
-    # activate cookiecutter env
-    . ~/tools/cookiecutter/bin/activate
-    # you should have this project already cloned in ~/.cookiecutters/cookiecutter-symfony
-    # refresh it (or git clone if not done yet)
+    # If you already played with cookiecutter you have this directory with the
+    # old project templates. You may need to refresh it.
+    # ignore this step on first exec (you do not have it yet)
     cd ~/.cookiecutters/cookiecutter-symfony \
         && git fetch origin && git reset --hard origin/master \
         && cd -
+    # activate cookiecutter env
+    . ~/tools/cookiecutter/bin/activate
+    # And launch the new 'foobar' project generation!
     cookiecutter --no-input -f -o ~/out_dir \
         https://github.com/corpusops/cookiecutter-symfony.git \
-        name=foo \
+        name=foobar \
         tld_domain=mydomain.com \
         git_server=git.foo.com \
         git_ns=bar \

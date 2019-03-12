@@ -1,4 +1,5 @@
 image: corpusops/ubuntu:18.04
+{% set devhostdeploycomment = (not cookiecutter.dev_host) and '#  ' or '' %}
 stages:
   - manual_jobs
   - build
@@ -55,7 +56,7 @@ variables:
   SUCCESS_FLAG: "/cache/$CI_PROJECT_PATH_SLUG/ci_success_${CI_PIPELINE_IID}"
 {%-if cookiecutter.use_submodule_for_deploy_code%}
   # {{cookiecutter.lname}} settings
-  DJANGO_DEPLOY_VERSION: origin/stable
+  SYMFONY_DEPLOY_VERSION: origin/stable
 {%endif%}
 
 # NEVER ever use gitlab-ci cache, its broken by design in most case of CI related tasks
@@ -82,7 +83,7 @@ variables:
 before_script: &top_before_script
 {%-if cookiecutter.use_submodule_for_deploy_code%}
 - &pullsubmodules
-    cd {{cookiecutter.deploy_project_dir}} && git fetch origin && git reset --hard $DJANGO_DEPLOY_VERSION && cd -
+    cd {{cookiecutter.deploy_project_dir}} && git fetch origin && git reset --hard $SYMFONY_DEPLOY_VERSION && cd -
 {%endif%}
 - for i in
     /cache/$CI_PROJECT_PATH_SLUG/docker-images
@@ -295,16 +296,16 @@ teardown_env: &teardown_env
   script:
   - .ansible/scripts/call_ansible.sh -vv -l $A_ENV_NAME "${DEPLOY_PLAYBOOK}"
 
-deploy_dev: &deploy_dev
-  <<: [ *deploy_tpl ]
-  when: on_success
-  variables: &deploy_dev_vars
-    <<: [ *deploy_vars_tpl ]
-    A_ENV_NAME: dev
-  only: [master, tags]
-  environment:
-    name: dev
-    url: https://{{cookiecutter.dev_domain}}
+{{devhostdeploycomment}}deploy_dev: &deploy_dev
+{{devhostdeploycomment}}  <<: [ *deploy_tpl ]
+{{devhostdeploycomment}}  when: on_success
+{{devhostdeploycomment}}  variables: &deploy_dev_vars
+{{devhostdeploycomment}}    <<: [ *deploy_vars_tpl ]
+{{devhostdeploycomment}}    A_ENV_NAME: dev
+{{devhostdeploycomment}}  only: [master, tags]
+{{devhostdeploycomment}}  environment:
+{{devhostdeploycomment}}    name: dev
+{{devhostdeploycomment}}    url: https://{{cookiecutter.dev_domain}}
 
 # manual rebuild on any branch except master or tags , no filter
 # and the according deploy job
@@ -315,34 +316,34 @@ deploy_dev: &deploy_dev
 
 # As gitlab-ci does not support pipeline branching, for manual dev release, we need
 # to make a last and one-for-all deploy step for non-blocking pipelines when we do a merge request
-manual_dev_release_and_deploy: &manual_dev_release_and_deploy
-  <<: [ *manual_jobs_on_branches_tpl, *deploy_dev, *release_tpl ]
-  stage: manual_jobs
-  when: manual
-  allow_failure: true
-  variables:
-    <<: [ *build_images_vars, *release_vars, *deploy_dev_vars ]
-    RELEASED_DOCKER_IMAGE: "$DEV_DOCKER_IMAGE"
-  before_script: *top_before_script
-  script:
-  - *build_step1
-  - *release_step1
-  - *release_step2
-  - *release_step3
-  - *teardown_step1
-  - *teardown_step2
-  - *teardown_step3
-  - *deploy_setup
-  - *deploy_key_setup
-  - &deploy_manual_dev_cmd |-
-    .ansible/scripts/call_ansible.sh -vv -l $A_ENV_NAME \
-    "${DEPLOY_PLAYBOOK}" -e "{cops_{{cookiecutter.app_type}}_docker_tag: dev}"
-manual_dev_deploy_without_release:
-  <<: [ *manual_dev_release_and_deploy ]
-  script:
-  - *deploy_setup
-  - *deploy_key_setup
-  - *deploy_manual_dev_cmd
+{{devhostdeploycomment}}manual_dev_release_and_deploy: &manual_dev_release_and_deploy
+{{devhostdeploycomment}}  <<: [ *manual_jobs_on_branches_tpl, *deploy_dev, *release_tpl ]
+{{devhostdeploycomment}}  stage: manual_jobs
+{{devhostdeploycomment}}  when: manual
+{{devhostdeploycomment}}  allow_failure: true
+{{devhostdeploycomment}}  variables:
+{{devhostdeploycomment}}    <<: [ *build_images_vars, *release_vars, *deploy_dev_vars ]
+{{devhostdeploycomment}}    RELEASED_DOCKER_IMAGE: "$DEV_DOCKER_IMAGE"
+{{devhostdeploycomment}}  before_script: *top_before_script
+{{devhostdeploycomment}}  script:
+{{devhostdeploycomment}}  - *build_step1
+{{devhostdeploycomment}}  - *release_step1
+{{devhostdeploycomment}}  - *release_step2
+{{devhostdeploycomment}}  - *release_step3
+{{devhostdeploycomment}}  - *teardown_step1
+{{devhostdeploycomment}}  - *teardown_step2
+{{devhostdeploycomment}}  - *teardown_step3
+{{devhostdeploycomment}}  - *deploy_setup
+{{devhostdeploycomment}}  - *deploy_key_setup
+{{devhostdeploycomment}}  - &deploy_manual_dev_cmd |-
+{{devhostdeploycomment}}    .ansible/scripts/call_ansible.sh -vv -l $A_ENV_NAME \
+{{devhostdeploycomment}}    "${DEPLOY_PLAYBOOK}" -e "{cops_{{cookiecutter.app_type}}_docker_tag: dev}"
+{{devhostdeploycomment}}manual_dev_deploy_without_release:
+{{devhostdeploycomment}}  <<: [ *manual_dev_release_and_deploy ]
+{{devhostdeploycomment}}  script:
+{{devhostdeploycomment}}  - *deploy_setup
+{{devhostdeploycomment}}  - *deploy_key_setup
+{{devhostdeploycomment}}  - *deploy_manual_dev_cmd
 
 {% if cookiecutter.qa_host -%}
 deploy_qa: &deploy_qa
@@ -387,16 +388,17 @@ deploy_prod: &deploy_prod
     local/*/*/*/playbooks/provision/lxc_compute_node/main.yml
     -t lxc_haproxy_registrations,lxc_ms_iptables_registrations
 
+{% if cookiecutter.prod_host -%}
 reconfigure_prod_haproxy_and_fw:
   <<: [ *reconfigure_haproxy_and_firewall_tpl, *deploy_prod ]
-
-reconfigure_dev_haproxy_and_fw:
-  <<: [ *reconfigure_haproxy_and_firewall_tpl, *deploy_dev ]
+{% endif %}
+{{devhostdeploycomment}}reconfigure_dev_haproxy_and_fw:
+{{devhostdeploycomment}}  <<: [ *reconfigure_haproxy_and_firewall_tpl, *deploy_dev ]
 {% endif %}
 # Allow to immediatly trigger a deploy without waiting for the full pipeline to complete
 # eg: redeploying after only issuing a deploy code or configuration change.
-manual_deploy_dev:
-  <<: [ *manual_job_tpl, *deploy_dev ]
+{{devhostdeploycomment}}manual_deploy_dev:
+{{devhostdeploycomment}}  <<: [ *manual_job_tpl, *deploy_dev ]
 
 {% if cookiecutter.qa_host -%}
 manual_deploy_qa:

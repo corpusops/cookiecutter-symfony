@@ -1,36 +1,27 @@
-{%- set db_tag = 'post' in cookiecutter.db_mode and 'postgres' or cookiecutter.db_mode -%}
 version: '3.7'
 x-images:
   env: &env {env_file: [.env, docker.env]}
-  {{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
+  symfony: &symfony
     <<: [ *env ]
     tty: true
-    # latest image is only used in prod (without dev & test tools)
-    image: "${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE}:${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}-dev"
-    environment: &django_env
-      DJANGO_WSGI: "${DJANGO_WSGI:-{{cookiecutter.django_project_name}}.wsgi}"
-{% if cookiecutter.with_celery %}      DJANGO_CELERY: "${DJANGO_CELERY:-{{cookiecutter.django_project_name}}.celery:app}"
-      DJANGO_CELERY_BROKER: "${DJANGO_CELERY_BROKER:-{{cookiecutter.celery_broker}}}"
-      DJANGO_CELERY_HOST: "${DJANGO_CELERY_HOST:-celery-broker}"
-{% endif %}    depends_on:
+    environment: &symfony_env
+      APP_ENV: "${APP_ENV:-dev}"
+      APP_SECRET: "${APP_SECRET:-77fd8b950969a6909c46ab0b6fd5d062}"
+    depends_on:
     - db
-    - redis
-    - setup-{{db_tag}}
-    working_dir: /code/src
+    - setup-postgres
+    {%if cookiecutter.with_redis%}- redis{%endif%}
+    working_dir: /code/app
     command:
     - /bin/sh
     - '-c'
     - >-
       :
-      && dockerize -wait http://setup-{{db_tag}} -timeout $${POSTGRES_STARTUP_TIMEOUT}
+      && dockerize -wait http://setup-postgres -timeout ${POSTGRES_STARTUP_TIMEOUT}
+      && echo "launching init.sh"
       && /init.sh
     volumes:
-      {%- if not cookiecutter.remove_cron %}
-      - ./crontab:/etc/cron.d/{{cookiecutter.app_type}}
-      {%- endif %}
-      - ./src/{{cookiecutter.django_settings.replace('.', '/')}}/instances:/code/src/{{cookiecutter.django_settings.replace('.', '/')}}/instances
-      - mediafiles:/code/public/media
-      - statics:/code/public/static
+      # - ./sys/crontab:/etc/cron.d/symfony # nope -> chown root done on that file, prefer a COPY, or a template
       - logs:/logs/
 services:
   mailcatcher:
@@ -55,47 +46,46 @@ services:
         && pw=$$(MH_AUTH_FILE="" MailHog bcrypt "$${MAILCATCHER_PASSWORD:-mailcatcher}")
         && echo "$${MAILCATCHER_USER:-mailcatcher}:$$pw" > $$MH_AUTH_FILE
         && su mailhog -p -c MailHog
+  {%if cookiecutter.with_redis%}
   redis:
     <<: [ *env ]
-    image: "{{cookiecutter.redis_image}}"
+    image: "fixme"
     hostname: redis
     volumes:
       - 'redis:/data'
+  {%endif%}
   db:
     <<: [ *env ]
-    image: "{{cookiecutter["{0}_image".format(cookiecutter.db_mode)]}}"
+    image: "corpusops/postgres:10"
     volumes:
       - postgresql:/var/lib/postgresql/data
   nginx:
     <<: [ *env ]
     restart: always
-    image: "{{cookiecutter.nginx_image}}"
+    image: "corpusops/nginx:1.14-alpine"
     depends_on:
-      - {{cookiecutter.app_type}}
+      - symfony
     volumes:
       - ./sys/etc/nginx/vhost.conf.template:/etc/nginx/conf.d/default.conf.template
-      - mediafiles:/public/media/:ro
-      - statics:/public/static/
+      #- mediafiles:/public/media/:ro
+      #- statics:/public/static/
       - logs:/logs/
-      - nginx-certs:/certs
     command: >
       /bin/sh -c ": \
       && v=/etc/nginx/conf.d/default.conf
-      && frep $${v}.template:$${v} --overwrite
+      && frep ${nginxvhost}.template:${nginxvhost} --overwrite
       && exec /bin/supervisord.sh"
     environment:
-    - SUPERVISORD_CONFIGS=/etc/supervisor.d/cron /etc/supervisor.d/nginx /etc/supervisor.d/rsyslog
-  {{cookiecutter.app_type}}:
-    <<: [ *{{cookiecutter.app_type}} ]
-  {%- if not cookiecutter.remove_cron %}
+    - SUPERVISORD_CONFIGS=/etc/supervisor.d/cron /etc/supervisor.d/nginx
+  symfony:
+    <<: [ *symfony ]
   cron:
-    <<: [ *{{cookiecutter.app_type}} ]
+    <<: [ *symfony ]
     environment:
-      <<: [ *django_env ]
+      <<: [ *symfony_env ]
       IMAGE_MODE: cron
     depends_on:
-    - {{cookiecutter.app_type}}
-  {%-endif%}
+    - symfony
   backup:
     <<: [ *env ]
     image: "corpusops/dbsmartbackup:pg10"
@@ -105,26 +95,7 @@ services:
       - backupdb-logs:/srv/backups/logs/
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - ./local/backup/setup/reconfigure.yml:/setup/reconfigure.yml:ro
-{% if cookiecutter.with_celery %}  celery-broker:
-    <<: [ *env ]
-    image: "{{cookiecutter['{0}_image'.format(cookiecutter.celery_broker)]}}"
-    {% if cookiecutter.celery_broker in ['redis', 'rabbitmq'] -%}
-    volumes:
-    - celery{{cookiecutter.celery_broker}}:{% if cookiecutter.celery_broker in ['rabbitmq']%}/var/lib/{{cookiecutter.celery_broker}}{%else%}/data{%endif%}:rw
-    {%- endif %}
-  celery-beat: &celery
-    <<: [ *django ]
-    environment:
-      <<: [ *django_env ]
-      IMAGE_MODE: celery_beat
-    depends_on: [db, celery-broker, setup-{{db_tag}}]
-  celery-worker:
-    <<: [ *celery ]
-    environment:
-      <<: [ *django_env ]
-      IMAGE_MODE: celery_worker
-{% endif -%}
-{% if db_tag == 'postgres' %}  setup-postgres:
+  setup-postgres:
     <<: [ *env ]
     image: corpusops/pgrouting:10.1-2.5.4
     depends_on:
@@ -139,25 +110,22 @@ services:
       if [ -e "$$flag" ];then rm -f "$$flag";fi
       echo "Try connection to pgsql: $$POSTGRES_DB & wait for db init" >&2 \
       && ( while true;do if ( \
-        echo "{% if 'gis' in cookiecutter.db_mode%}select 1 from spatial_ref_sys limit 1;select postgis_version();{%else%}select 1{%endif%}"\
+        echo "select 1"\
         | psql -v ON_ERROR_STOP=1 \
           "postgres://$$POSTGRES_USER:$$POSTGRES_PASSWORD@db/$$POSTGRES_DB"\
       );then touch $$flag && break;fi;done )&
       set -x \
       && dockerize -wait file://$$flag -timeout $${POSTGRES_STARTUP_TIMEOUT} \
       && while true;do printf "HTTP/1.1 200 OK\n\nstarted"| ( nc -l -p 80 || /bin/true);done
-{% endif %}
 volumes:
   backupdb-logs:
   backupdb-dumps:
   postgresql:
-  redis:
-  nginx-certs:
-  mediafiles:
-  statics:
-    name: "${{'{'}}{{cookiecutter.app_type.upper()}}_NAME}-statics-${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}"
-    external: false
+  {%if cookiecutter.with_redis%}redis:{%endif%}
+#  mediafiles:
+#  statics:
+#    name: "symfony_BASE_COMMON_statics"
+#    external: false
   logs:
   mails:
-  {%if cookiecutter.with_celery%}celery{{cookiecutter.celery_broker}}:{%endif%}
 

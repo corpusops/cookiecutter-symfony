@@ -9,19 +9,8 @@ cops_{{cookiecutter.app_type}}_docker_tag: "{{'{{'}}cops_{{cookiecutter.app_type
 {% if 'post' in cookiecutter.db_mode -%}
 cops_{{cookiecutter.app_type}}_postgres_startup_timeout: 45s
 {%- endif %}
-{% if cookiecutter.with_celery -%}
-cops_{{cookiecutter.app_type}}_rabbitmq_user: rabbit
-cops_{{cookiecutter.app_type}}_rabbitmq_password: rabbitpw
-{%- endif%}
 cops_{{cookiecutter.app_type}}_docker_env_extra: |-
   # db
-  {% if cookiecutter.with_celery -%}
-  {% if cookiecutter.celery_broker == 'rabbitmq' %}RABBITMQ_DEFAULT_USER={{'{{'}}cops_{{cookiecutter.app_type}}_rabbitmq_user}}
-  RABBITMQ_DEFAULT_PASS={{'{{'}}cops_{{cookiecutter.app_type}}_rabbitmq_password}}{% endif %}
-  {%- endif %}
   {% if 'post' in cookiecutter.db_mode %}POSTGRES_STARTUP_TIMEOUT={{'{{'}}cops_{{cookiecutter.app_type}}_postgres_startup_timeout}}{% endif %}
-{% if cookiecutter.with_celery %}
-cops_django_restarted_services: "{{'{{'}}cops_django_restarted_services_default.replace(' django', ' django{%
-  if cookiecutter.with_celery%} celery-broker celery-beat celery-worker{%endif
-  %}{%if 'post' in cookiecutter.db_mode%} setup-postgres{%endif%}')}}"
-{% endif %}
+cops_symfony_http_protect_user: "root"
+cops_symfony_http_protect_password: "rootroot"

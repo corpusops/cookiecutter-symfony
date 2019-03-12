@@ -71,8 +71,8 @@ server {
     server_name {{'{{'}} $v.server_name }};
     server_name_in_redirect {{'{{'}} $v.server_name_in_redirect }};
 
-    error_log  /logs/django-error.log  crit;
-    access_log /logs/django-access.log custom_combined if=$method_loggable;
+    error_log  /logs/symfony-error.log  crit;
+    access_log /logs/symfony-access.log custom_combined if=$method_loggable;
 
     {{'{{'}} define "vhost" }}
     gzip on;
@@ -135,7 +135,6 @@ server {
 
     {{'{{'}} if not .nostatics }}
     location {{cookiecutter.statics_uri}}/ {
-        alias /public/static/;
 
         # static optimisations
         tcp_nodelay off;
@@ -151,31 +150,27 @@ server {
     }
     {{'{{'}} end }}
 
-    location ~ ^/(api/|admin/) {
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Host $http_host;
-        proxy_redirect off;
-        proxy_pass http://django:8000;
-
-        # Never cache the API content to prevent proxy caching
-        add_header Pragma "no-cache";
-        add_header Cache-Control "private, max-age=0, no-cache, no-store";
-    }
-
-    location ~ ^{{cookiecutter.media_uri}}/ {
-        internal;
-        root /public/;
-    }
+    root /code/app/public
 
     location / {
+        # try to serve file directly, fallback to index.php
+        try_files $uri /index.php$is_args$args;
+    }
+
+    location ~ ^/index\.php(/|$) {
+        # no direct access
+        internal;
+
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header Host $http_host;
         proxy_redirect off;
-        proxy_pass http://django:8000;
-
-        # Never cache the API content to prevent proxy caching
-        add_header Pragma "no-cache";
-        add_header Cache-Control "private, max-age=0, no-cache, no-store";
+        proxy_pass http://symfony:9000;
+    }
+    
+    # return 404 for all other php files not matching the front controller
+    # this prevents access to other php files you don't want to be accessible.
+    location ~ \.php$ {
+        return 404;
     }
 
     location ~ ^/mailcatcher/ {
@@ -201,8 +196,8 @@ server {
     ssl_session_timeout 10m;
     ssl_prefer_server_ciphers on;
     ssl_dhparam {{'{{'}} $v.diffie }};
-    error_log  /logs/ssl-django-error.log  crit;
-    access_log /logs/ssl-django-access.log custom_combined if=$method_loggable;
+    error_log  /logs/ssl-symfony-error.log  crit;
+    access_log /logs/ssl-symfony-access.log custom_combined if=$method_loggable;
     {{'{{'}} template "vhost" $v }}
 }
 {{'{{'}} end }}

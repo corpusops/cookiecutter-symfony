@@ -1,6 +1,7 @@
 {
     "name": "myapp",
     "php_ver": "7.2",
+    "base_os": "centos",
     "git_ns": "{{cookiecutter.name}}-group",
     "lname": "{{cookiecutter.name|lower}}",
     "out_dir": ".",
@@ -46,7 +47,8 @@
     "runner_tag": "{{cookiecutter.fname_slug}}-ci",
     "deploy_project_url": "https://github.com/corpusops/{{cookiecutter.app_type}}-deploy-common.git",
     "deploy_project_dir": "local/{{cookiecutter.deploy_project_url.split('/')[-1].replace('.git', '')}}",
-    "with_sentry": "y",
+    "with_sentry": "n",
+    "with_redis": "n",
     "docker_registry": "registry.{{cookiecutter.infra_domain}}",
     "registry_is_gitlab_registry": "{% if 'gitlab.com' in cookiecutter.docker_registry%}y{%endif%}",
     "simple_docker_image": "{{cookiecutter.git_ns.split('/')[0].lower()}}/{{cookiecutter.lname}}",
@@ -57,7 +59,7 @@
     "use_l10n": "y",
     "registry_user": "{%if cookiecutter.registry_is_gitlab_registry%}gitlab-ci-token{%endif%}",
     "registry_password": "{%if cookiecutter.registry_is_gitlab_registry%}$CI_JOB_TOKEN{%endif%}",
-    "statics_uri": "/static",
+    "statics_uri": "/bundles",
     "use_tz": "y",
     "language_code": "fr-fr",
     "postgis_image": "corpusops/pgrouting:10.1-2.5.4",
@@ -67,6 +69,5 @@
     "redis_image": "corpusops/redis:4.0-alpine",
     "nginx_image": "corpusops/nginx:1.14-alpine",
     "user_model": "",
-    "no_lib": "",
     "no_private": ""
 }

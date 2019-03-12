@@ -27,7 +27,7 @@ APP_USER=${APP_USER:-${APP}}
 APP_CONTAINER=${APP_CONTAINER:-${APP}}
 DEBUG=${DEBUG-}
 NO_BACKGROUND=${NO_BACKGROUND-}
-BUILD_PARALLEL=${BUILD_PARALLEL:-1}
+BUILD_PARALLEL=${BUILD_PARALLEL-1}
 BUILD_CONTAINERS="$APP_CONTAINER{%-if not cookiecutter.remove_cron%} cron{%endif%}"
 EDITOR=${EDITOR:-vim}
 DIST_FILES_FOLDERS=". src/*/settings"
@@ -110,7 +110,7 @@ do_dcompose() {
 
 #  ----
 #  [services_ports=1] usershell $user [$args]: open shell inside \$CONTAINER as \$APP_USER using docker-compose run
-#       APP_USER=django ./control.sh usershell ls /
+#       APP_USER={{cookiecutter.app_type}} ./control.sh usershell ls /
 #       APP_USER=root CONTAINER=redis ./control.sh usershell ls /
 #       if services_ports is set, network alias will be set (--services-ports docker compose flag)
 do_usershell() { _shell "${CONTAINER:-$APP_CONTAINER}" "$APP_USER" run $@;}
@@ -126,7 +126,7 @@ _exec() {
 }
 
 #  userexec [$args]: exec command or make an interactive shell as $user inside running \$CONTAINER using docker-compose exec
-#       APP_USER=django ./control.sh userexec ls /
+#       APP_USER={{cookiecutter.app_type}} ./control.sh userexec ls /
 #       APP_USER=root APP_CONTAINER=redis ./control.sh userexec ls /
 do_userexec() { _exec "${CONTAINER:-$APP_CONTAINER}" "$APP_USER" $@;}
 
@@ -147,9 +147,9 @@ _dexec() {
 }
 
 #  duserexec $container  [$args]: exec command or make an interactive shell as $user inside running \$APP_CONTAINER using docker exec
-#       APP_USER=django ./control.sh duserexec -> run interactive shell inside default CONTAINER
-#       APP_USER=django ./control.sh duserexec foo123 -> run interactive shell inside foo123 CONTAINER
-#       APP_USER=django ./control.sh duserexec django_123 ls / -> run comand inside foo123 CONTAINER
+#       APP_USER={{cookiecutter.app_type}} ./control.sh duserexec -> run interactive shell inside default CONTAINER
+#       APP_USER={{cookiecutter.app_type}} ./control.sh duserexec foo123 -> run interactive shell inside foo123 CONTAINER
+#       APP_USER={{cookiecutter.app_type}} ./control.sh duserexec foo123 ls / -> run comand inside foo123 CONTAINER
 do_duserexec() {
     local container="${1-}";if [[ -n "${1-}" ]];then shift;fi
     _dexec "${container}" "$APP_USER" $@;
@@ -162,7 +162,7 @@ do_dexec() {
     _dexec "${container}" root      $@;
 }
 
-#  install_docker: install docker and docker-compose on ubuntu
+#  install_docker: install docker and docker-compose on ubuntu
 do_install_docker() {
     vv .ansible/scripts/download_corpusops.sh
     vv .ansible/scripts/setup_corpusops.sh
@@ -170,9 +170,17 @@ do_install_docker() {
         local/*/*/corpusops.roles/services_virt_docker/role.yml
 }
 
-#  pull [$args]: pull stack container images
+#  pull [$args]: pull stack container images
 do_pull() {
     vv $DC pull $@
+}
+
+
+#  ps [$args]: ps
+do_ps() {
+    local bargs=$@
+    set -- vv $DC ps
+    $@ $bargs
 }
 
 #  up [$args]: start stack
@@ -180,6 +188,21 @@ do_up() {
     local bargs=$@
     set -- vv $DC up
     if [[ -z $NO_BACKGROUND ]];then bargs="-d $bargs";fi
+    $@ $bargs
+}
+
+
+#  run [$args]: run stack
+do_run() {
+    local bargs=$@
+    set -- vv $DC run
+    $@ $bargs
+}
+
+#  rm [$args]: rm stack
+do_rm() {
+    local bargs=$@
+    set -- vv $DC rm
     $@ $bargs
 }
 
@@ -274,15 +297,16 @@ do_yamldump() {
     $@ $bargs
 }
 
-# {{cookiecutter.app_type.upper()}} specific
-#  python: enter python interpreter
-do_python() {
-    do_usershell $VENV/bin/python $@
+# SYMFONY specific
+#  php: enter php interpreter
+do_php() {
+    do_usershell php $@
 }
 
-#  manage [$args]: run manage.py commands
-do_manage() {
-    do_python manage.py $@
+# SYMFONY specific
+#  console [$args]: run php bin/console commands
+do_console() {
+    do_php bin/console $@
 }
 
 #  runserver [$args]: alias for fg
@@ -296,9 +320,9 @@ do_run_server() { do_runserver $@; }
 do_test() {
     local bargs=${@:-tests}
     stop_containers
+    # FIXME: fill that
     set -- vv do_shell \
-        "if [ -e ../.tox ];then chown {{cookiecutter.app_type}} ../.tox;fi
-        && gosu {{cookiecutter.app_type}} $VENV/bin/tox -c ../tox.ini -e $bargs"
+        "gosu {{cookiecutter.app_type}} /foo/bin/phpunit --fixme -e $bargs"
     "$@"
 }
 
@@ -310,34 +334,12 @@ do_linting() { do_test linting; }
 #  coverage: run coverage tests
 do_coverage() { do_test coverage; }
 
-{% if cookiecutter.with_celery -%}
-#  celery_beat_fg: launch celery app container in foreground (using entrypoint)
-do_celery_beat_fg() {
-    (   source_envs \
-        && CONTAINER=celery-beat \
-        && stop_containers $CONTAINER \
-        && services_ports=1 do_usershell \
-        celery beat -A \$DJANGO_CELERY -l \$CELERY_LOGLEVEL $@ )
-}
-
-#  celery_worker_fg: launch celery beat container in foreground (using entrypoint)
-do_celery_worker_fg() {
-    (   source_envs \
-        && CONTAINER=celery-worker \
-        && stop_containers celery-worker \
-        && services_ports=1 do_usershell \
-        celery worker -A \$DJANGO_CELERY -l \$CELERY_LOGLEVEL -B $@ )
-}
-
-{% endif -%}
-
-
 do_main() {
     local args=${@:-usage}
     local actions="up_corpusops|shell|usage|install_docker|setup_corpusops"
-    actions="$actions|yamldump|stop|usershell|exec|userexec|dexec|duserexec|dcompose"
-    actions="$actions|init|up|fg|pull|build|buildimages|down"
-    actions_{{cookiecutter.app_type}}="runserver|tests|test|coverage|linting|manage|python{% if cookiecutter.with_celery%}|celery_beat_fg|celery_worker_fg{%endif%}"
+    actions="$actions|yamldump|stop|usershell|exec|userexec|dexec|duserexec|dcompose|ps"
+    actions="$actions|init|up|fg|pull|build|buildimages|down|rm|run"
+    actions_{{cookiecutter.app_type}}="server|tests|test|coverage|linting|console|php"
     actions="@($actions|$actions_{{cookiecutter.app_type}})"
     action=${1-}
     if [[ -n $@ ]];then shift;fi
