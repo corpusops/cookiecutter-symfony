@@ -40,8 +40,8 @@ SYMLINKS_FILES = {
     "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/deploy_key_teardown.yml",  #noqa
     ".ansible/playbooks/site.yml":
     "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/site.yml",  #noqa
-    # "tox.ini":    "{{cookiecutter.deploy_project_dir}}/tox.ini",  #noqa
     "Dockerfile": "{{cookiecutter.deploy_project_dir}}/Dockerfile-{{cookiecutter.base_os}}",  #noqa
+    "sys/init.sh": "../{{cookiecutter.deploy_project_dir}}/sys/init.sh",  #noqa
 }
 SYMLINKS = {}
 SYMLINKS.update(SYMLINKS_DIRS)
@@ -93,11 +93,6 @@ sed -i -re \
 sed -i -re \
 	"s/project/{{cookiecutter.symfony_project_name}}/g" \
 	Dockerfile
-fi
-if ( find sys/*sh 2>/dev/null );then
-sed -i -re \
-	"s/project/{{cookiecutter.symfony_project_name}}/g" \
-	sys/*sh
 fi
 set +x
 {% if not cookiecutter.use_submodule_for_deploy_code %}

@@ -4,16 +4,16 @@ x-images:
     command: 'sh -c "while true;do echo notstarted;sleep 65000;done"'
     entrypoint: 'sh -c "while true;do echo notstarted;sleep 65000;done"'
     restart: "no"
-  symfony: &symfony
-    environment: &symfony_env
-       SYMFONY_SETTINGS_MODULE: "${SYMFONY_SETTINGS_MODULE:-{{cookiecutter.symfony_settings}}.dev}"
+  {{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
+    environment: &{{cookiecutter.app_type}}_env
        # NO_MIGRATE: "1"
        # NO_COLLECT_STATIC: "1"
+       # NO_CACHE_CLEAR: "1"
        # NO_COMPOSER: "1"
     volumes: &symfony_volumes
-      - ./sys/sudoer:/etc/sudoers.d/$APP_TYPE
-      - ./sys/init.sh:/code/init/init.sh
-      - ./sys/etc/supervisor.d:/code/etc/supervisor.d
+      #- ./sys/sudoer:/etc/sudoers.d/$APP_TYPE
+      - ./sys/init.sh:/code/sys/init.sh
+      #- ./sys/etc/supervisor.d:/code/etc/supervisor.d
       - ./local:/code/local
       - ./app:/code/app
 {%- if not cookiecutter.no_private %}
@@ -35,9 +35,9 @@ services:
         PHP_VER: "${SYMFONY_PHP_VER:-7.2}"
     <<: [ *bypass ]
   {{cookiecutter.app_type}}:
-    <<: [ *symfony ]
+    <<: [ *{{cookiecutter.app_type}} ]
     environment:
-      <<: [ *symfony_env ]
+      <<: [ *{{cookiecutter.app_type}}_env ]
       IMAGE_MODE: fg
     ports:
       - "8000:8000"
