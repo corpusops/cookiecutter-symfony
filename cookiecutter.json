@@ -2,6 +2,8 @@
     "name": "myapp",
     "php_ver": "7.2",
     "base_os": "centos",
+    "nginx_in_dev": "y",
+    "ssl_in_dev": "y",
     "git_ns": "{{cookiecutter.name}}-group",
     "lname": "{{cookiecutter.name|lower}}",
     "out_dir": ".",
@@ -29,7 +31,7 @@
     "dev_port": "22",
     "symfony_project_name": "{{cookiecutter.lname}}",
     "prod_port": "22",
-    "symfony_settings": "{{cookiecutter.symfony_project_name}}.settings",
+    "symfony_settings": "/code/app/.env",
     "mail_domain": "{{cookiecutter.tld_domain }}",
     "infra_domain": "{{cookiecutter.tld_domain }}",
     "git_server": "gitlab.{{cookiecutter.infra_domain}}",
@@ -47,8 +49,8 @@
     "runner_tag": "{{cookiecutter.fname_slug}}-ci",
     "deploy_project_url": "https://github.com/corpusops/{{cookiecutter.app_type}}-deploy-common.git",
     "deploy_project_dir": "local/{{cookiecutter.deploy_project_url.split('/')[-1].replace('.git', '')}}",
-    "with_sentry": "n",
-    "with_redis": "n",
+    "with_sentry": "",
+    "with_redis": "",
     "docker_registry": "registry.{{cookiecutter.infra_domain}}",
     "registry_is_gitlab_registry": "{% if 'gitlab.com' in cookiecutter.docker_registry%}y{%endif%}",
     "simple_docker_image": "{{cookiecutter.git_ns.split('/')[0].lower()}}/{{cookiecutter.lname}}",
@@ -69,5 +71,5 @@
     "redis_image": "corpusops/redis:4.0-alpine",
     "nginx_image": "corpusops/nginx:1.14-alpine",
     "user_model": "",
-    "no_private": ""
+    "no_private": "y"
 }

@@ -6,6 +6,7 @@ x-images:
     restart: "no"
   {{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
     environment: &{{cookiecutter.app_type}}_env
+       SOMETHING: 1
        # NO_MIGRATE: "1"
        # NO_COLLECT_STATIC: "1"
        # NO_CACHE_CLEAR: "1"
@@ -35,6 +36,10 @@ services:
         PHP_VER: "${SYMFONY_PHP_VER:-7.2}"
     <<: [ *bypass ]
   {{cookiecutter.app_type}}:
+    build:
+      context: "."
+      args:
+        PHP_VER: "${SYMFONY_PHP_VER:-7.2}"
     <<: [ *{{cookiecutter.app_type}} ]
     environment:
       <<: [ *{{cookiecutter.app_type}}_env ]

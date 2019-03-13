@@ -3,13 +3,30 @@ x-{{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
   image: "${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE}:${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}"
 services:
   nginx:
+    restart: unless-stopped
     ports:
     - 80:80
   {{cookiecutter.app_type}}:
+    restart: unless-stopped
     <<: [ *{{cookiecutter.app_type}} ]
     ports:
     - "9000:9000"
   {% if not cookiecutter.remove_cron %}
   cron:
-    <<: [ *{{cookiecutter.app_type}} ]
+    restart: unless-stopped
   {%- endif%}
+  backup:
+    restart: unless-stopped
+  mailcatcher:
+    restart: unless-stopped
+  {%if cookiecutter.with_redis%}
+  redis:
+    restart: unless-stopped
+  {%endif%}
+  db:
+    restart: unless-stopped
+  backup:
+    restart: unless-stopped
+{% if cookiecutter.db_mode == 'postgres' %}  setup-postgres:
+    restart: unless-stopped
+{% endif %}
