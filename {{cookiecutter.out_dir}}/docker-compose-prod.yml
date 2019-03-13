@@ -1,11 +1,17 @@
 version: '3.7'
 x-{{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
   image: "${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE}:${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}"
+x-images:
+  bypass: &bypass
+    command: 'sh -c "while true;do echo notstarted;sleep 65000;done"'
+    entrypoint: 'sh -c "while true;do echo notstarted;sleep 65000;done"'
+    restart: "no"
 services:
   nginx:
     restart: unless-stopped
     ports:
     - 80:80
+  {{cookiecutter.app_type}}-fg: {<<: [ *bypass ]}
   {{cookiecutter.app_type}}:
     restart: unless-stopped
     <<: [ *{{cookiecutter.app_type}} ]

@@ -6,11 +6,12 @@ x-images:
     restart: "no"
   {{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
     environment: &{{cookiecutter.app_type}}_env
-       SOMETHING: 1
-       # NO_MIGRATE: "1"
-       # NO_COLLECT_STATIC: "1"
-       # NO_CACHE_CLEAR: "1"
-       # NO_COMPOSER: "1"
+      SOMETHING: 1
+      PHP_DISPLAY_ERROR: 1
+      # NO_MIGRATE: "1"
+      # NO_COLLECT_STATIC: "1"
+      # NO_CACHE_CLEAR: "1"
+      # NO_COMPOSER: "1"
     volumes: &symfony_volumes
       #- ./sys/sudoer:/etc/sudoers.d/$APP_TYPE
       - ./sys/init.sh:/code/sys/init.sh
@@ -21,21 +22,32 @@ x-images:
       - ./private:/code/private
 {%- endif%}
 services:
-  nginx: {<<: [ *bypass ]}
-  # uncomment to activate in dev
-  # nginx:
-  # environment: {NO_SSL: ""}
-  # ports:
-  #   - 80: 80
-  #   - 443: 443
+  nginx:
+    environment: {NO_SSL: ""}
+    ports:
+    - "8008:80"
   backup: {<<: [ *bypass ]}
+  {%- if not cookiecutter.remove_cron %}
   cron: 
     build:
       context: "."
       args:
         PHP_VER: "${SYMFONY_PHP_VER:-7.2}"
     <<: [ *bypass ]
+    <<: [ *{{cookiecutter.app_type}} ]
+  {% endif %}
   {{cookiecutter.app_type}}:
+    build:
+      context: "."
+      args:
+        PHP_VER: "${SYMFONY_PHP_VER:-7.2}"
+    <<: [ *{{cookiecutter.app_type}} ]
+    environment:
+      <<: [ *{{cookiecutter.app_type}}_env ]
+      IMAGE_MODE: phpfpm
+    ports:
+      - "9000:9000"
+  {{cookiecutter.app_type}}-fg:
     build:
       context: "."
       args:
