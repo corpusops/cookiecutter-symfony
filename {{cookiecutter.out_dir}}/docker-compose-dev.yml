@@ -13,14 +13,21 @@ x-images:
       # NO_CACHE_CLEAR: "1"
       # NO_COMPOSER: "1"
     volumes: &symfony_volumes
+      {%-if cookiecutter.use_submodule_for_deploy_code %}
+      #- ./{{cookiecutter.deploy_project_dir}}/sys/sudoer:/etc/sudoers.d/$APP_TYPE
+      - ./{{cookiecutter.deploy_project_dir}}/sys/init.sh:/code/sys/init.sh
+      - ./{{cookiecutter.deploy_project_dir}}/sys/etc/supervisor.d:/code/sys/etc/supervisor.d
+      - ./{{cookiecutter.deploy_project_dir}}/sys/etc/php-fpm.d:/code/sys/etc/php-fpm.d
+      - ./{{cookiecutter.deploy_project_dir}}:/code/{{cookiecutter.deploy_project_dir}}
+      {%-else %}
       #- ./sys/sudoer:/etc/sudoers.d/$APP_TYPE
       - ./sys/init.sh:/code/sys/init.sh
+      {%endif%}
       #- ./sys/etc/supervisor.d:/code/etc/supervisor.d
       - ./local:/code/local
       - ./app:/code/app
-{%- if not cookiecutter.no_private %}
-      - ./private:/code/private
-{%- endif%}
+      # remount public (named volume) on /code/app/public
+      - public:/code/app/public:ro
 services:
   nginx:
     environment: {NO_SSL: ""}

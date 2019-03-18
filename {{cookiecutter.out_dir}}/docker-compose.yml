@@ -26,8 +26,11 @@ x-images:
       && /init.sh
     volumes:
       # - ./sys/crontab:/etc/cron.d/symfony # nope -> chown root done on that file, prefer a COPY, or a template
-      # - statics:/code/public/static
       - logs:/logs/
+      - public:/code/app/public
+{%- if not cookiecutter.no_private %}
+      - private:/code/private
+{%- endif%}
 services:
   mailcatcher:
     <<: [ *env ]
@@ -72,8 +75,10 @@ services:
       - {{cookiecutter.app_type}}
     volumes:
       - ./sys/etc/nginx/vhost.conf.template:/etc/nginx/conf.d/default.conf.template
-      #- mediafiles:/public/media/:ro
-      #- statics:/public/static/
+      - public:/code/app/public:ro
+{%- if not cookiecutter.no_private %}
+      - private:/code/private:ro
+{%- endif%}
       - logs:/logs/
       - nginx-certs:/certs
     command:
@@ -150,9 +155,14 @@ volumes:
   postgresql:
   {%if cookiecutter.with_redis%}redis:{%endif%}
   nginx-certs:
-  statics:
-    name: "${{'{'}}{{cookiecutter.app_type.upper()}}_NAME}-statics-${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}"
+  public:
+    name: "${{'{'}}{{cookiecutter.app_type.upper()}}_NAME}-public-${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}"
     external: false
+{%- if not cookiecutter.no_private %}
+  private:
+    name: "${{'{'}}{{cookiecutter.app_type.upper()}}_NAME}-private-${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}"
+    external: false
+{%- endif%}
   logs:
   mails:
 

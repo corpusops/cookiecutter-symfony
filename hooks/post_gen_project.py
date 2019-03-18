@@ -41,7 +41,6 @@ SYMLINKS_FILES = {
     ".ansible/playbooks/site.yml":
     "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/site.yml",  #noqa
     "Dockerfile": "{{cookiecutter.deploy_project_dir}}/Dockerfile-{{cookiecutter.base_os}}",  #noqa
-    "sys/init.sh": "../{{cookiecutter.deploy_project_dir}}/sys/init.sh",  #noqa
 }
 SYMLINKS = {}
 SYMLINKS.update(SYMLINKS_DIRS)
