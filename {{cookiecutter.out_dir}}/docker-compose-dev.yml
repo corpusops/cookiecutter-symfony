@@ -30,7 +30,7 @@ x-images:
       - public:/code/app/public:ro
 services:
   nginx:
-    environment: {NO_SSL: ""}
+    environment: {NO_SSL: "1"}
     ports:
     - "8008:80"
   backup: {<<: [ *bypass ]}

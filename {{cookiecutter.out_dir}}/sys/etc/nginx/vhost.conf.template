@@ -150,7 +150,7 @@ server {
     }
     {{'{{'}} end }}
 
-    root /code/app/public
+    root /code/app/public;
 
     location / {
         # try to serve file directly, fallback to index.php
