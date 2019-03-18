@@ -71,7 +71,7 @@ server {
     server_name {{'{{'}} $v.server_name }};
     server_name_in_redirect {{'{{'}} $v.server_name_in_redirect }};
 
-    error_log  /logs/symfony-error.log  crit;
+    error_log  /logs/symfony-error.log  debug;
     access_log /logs/symfony-access.log custom_combined if=$method_loggable;
 
     {{'{{'}} define "vhost" }}
@@ -126,11 +126,18 @@ server {
     proxy_buffering off;
     proxy_http_version 1.1;
 
-    # Set custom 502 page when service is starting
-    error_page 502 /502.html;
-    location = /502.html {
-        root  /public/502.html;
+    root /code/app/public;
+
+    error_page 502 @maintenance;
+    error_page 503 {%if cookiecutter.maintenance_no_503%}=200{% endif %} @maintenance;
+    location @maintenance {
+        add_header Vary 'Accept-Encoding';
+        add_header Cache-Control 'no-cache, must-revalidate, post-check=0, pre-check=0' always;
+        add_header Expires 'Sun, 19 Nov 1978 05:00:00 GMT' always;
+        add_header Retry-After 60 always;
+        rewrite ^(.*)$ /maintenance.html break;
     }
+
     {{'{{'}} if .noforcessl }}# {{'{{'}} end }}if ($forwarded_ssl_scheme != "https"){ rewrite ^(.*)$ https://$host$1 permanent; }
 
     {{'{{'}} if not .nostatics }}
@@ -150,9 +157,13 @@ server {
     }
     {{'{{'}} end }}
 
-    root /code/app/public;
-
     location / {
+
+        # check maintenance marker on shared directory
+        if (-f  $document_root/MAINTENANCE) {
+            return 503;
+        }
+
         # try to serve file directly, fallback to index.php
         try_files $uri /index.php$is_args$args;
     }

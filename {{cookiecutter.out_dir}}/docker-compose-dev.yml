@@ -27,10 +27,10 @@ x-images:
       - ./local:/code/local
       - ./app:/code/app
       # remount public (named volume) on /code/app/public
-      - public:/code/app/public:ro
+      - public:/code/app/public
 services:
   nginx:
-    environment: {NO_SSL: "1"}
+    environment: {NO_SSL: "{%if cookiecutter.ssl_in_dev%}1{%endif%}"}
     ports:
     - "8008:80"
   backup: {<<: [ *bypass ]}
