@@ -6,7 +6,8 @@ x-images:
     restart: "no"
   {{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
     environment: &{{cookiecutter.app_type}}_env
-      SOMETHING: 1
+      APP_ENV: "dev"
+      APP_SECRET: "42"
       PHP_DISPLAY_ERROR: 1
       # NO_MIGRATE: "1"
       # NO_COLLECT_STATIC: "1"
@@ -26,14 +27,19 @@ x-images:
       #- ./sys/etc/supervisor.d:/code/etc/supervisor.d
       - ./local:/code/local
       - ./app:/code/app
-      # remount public (named volume) on /code/app/public
-      - public:/code/app/public
+      # remount public (named volume on prod, local remount on dev)
+      # on /code/app/public
+      - ./app/public:/code/app/public
 services:
   nginx:
     environment: 
       NO_SSL: "{%if not cookiecutter.ssl_in_dev%}1{%endif%}"
     ports:
     - "8008:80"
+    volumes:
+      # remount public (named volume on prod, local remount on dev)
+      # on /code/app/public
+      - ./app/public:/code/app/public
   backup: {<<: [ *bypass ]}
   {%- if not cookiecutter.remove_cron %}
   cron: 

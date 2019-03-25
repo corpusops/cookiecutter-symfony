@@ -140,17 +140,20 @@ server {
 
     {{'{{'}} if .noforcessl }}# {{'{{'}} end }}if ($forwarded_ssl_scheme != "https"){ rewrite ^(.*)$ https://$host$1 permanent; }
 
+    # static optimisations
+    tcp_nodelay off;
+    sendfile on;
+    # Set the OS file cache.
+    # Note that we use the error mode and limit to 30s to manage the maintenance
+    # page trigger on this cache and avoid a lot of Io on maintenance trigger checks
+    open_file_cache max=200000 inactive=5m;
+    open_file_cache_valid 30s;
+    open_file_cache_min_uses 2;
+    open_file_cache_errors on;
+
     {{'{{'}} if not .nostatics }}
     location {{cookiecutter.statics_uri}}/ {
 
-        # static optimisations
-        tcp_nodelay off;
-        sendfile on;
-        # Set the OS file cache.
-        open_file_cache max=3000 inactive=300s;
-        open_file_cache_valid 60s;
-        open_file_cache_min_uses 2;
-        open_file_cache_errors off;
 
         add_header Pragma "cache";
         add_header Cache-Control "public";
