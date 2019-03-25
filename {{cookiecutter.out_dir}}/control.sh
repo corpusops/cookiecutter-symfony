@@ -25,10 +25,11 @@ VENV=../venv
 APP={{cookiecutter.app_type}}
 APP_USER=${APP_USER:-${APP}}
 APP_CONTAINER=${APP_CONTAINER:-${APP}}
+APP_CONTAINERs="^($APP_CONTAINER|celery)"
 DEBUG=${DEBUG-}
 NO_BACKGROUND=${NO_BACKGROUND-}
 BUILD_PARALLEL=${BUILD_PARALLEL-1}
-BUILD_CONTAINERS="$APP_CONTAINER{%-if not cookiecutter.remove_cron%} cron{%endif%}"
+BUILD_CONTAINERS="$APP_CONTAINER $APP_CONTAINER-fg {%-if not cookiecutter.remove_cron%} cron{%endif%}"
 EDITOR=${EDITOR:-vim}
 DIST_FILES_FOLDERS=". src/*/settings"
 CONTROL_COMPOSE_FILES="${CONTROL_COMPOSE_FILES:-docker-compose.yml docker-compose-dev.yml}"
@@ -78,6 +79,10 @@ _shell() {
     local DOCKER_SHELL=${DOCKER_SHELL-}
     local SHELL_USER=${user-${SHELL_USER}}
     local run_mode_args=""
+    local initsh=""
+    if ( echo $container |egrep -q "$APP_CONTAINERS" );then
+                local initsh="/init.sh"
+    fi
     if [[ "$run_mode" == "run" ]];then
         run_mode_args="$run_mode_args --rm --no-deps"
         if [[ -n "$use_aliases" ]];then
@@ -91,13 +96,13 @@ _shell() {
         set -- dvv docker exec -ti \
             -e TERM=$TERM -e COLUMNS=$COLUMNS -e LINES=$LINES \
             -e SHELL_USER=${SHELL_USER} \
-            $container /init.sh $bargs
+            $container $bargs
     else
         set -- dvv $DC \
             $run_mode $run_mode_args \
             -e TERM=$TERM -e COLUMNS=$COLUMNS -e LINES=$LINES \
             -e SHELL_USER=${SHELL_USER} \
-            $container /init.sh $bargs
+            $container $initsh $bargs
     fi
     "$@"
 }
@@ -109,14 +114,14 @@ do_dcompose() {
 }
 
 #  ----
-#  [services_ports=1] usershell $user [$args]: open shell inside \$CONTAINER as \$APP_USER using docker-compose run
+#  [services_ports=1] usershell $user [$args]: open shell inside $CONTAINER as $APP_USER using docker-compose run
 #       APP_USER={{cookiecutter.app_type}} ./control.sh usershell ls /
 #       APP_USER=root CONTAINER=redis ./control.sh usershell ls /
-#       if services_ports is set, network alias will be set (--services-ports docker compose flag)
+#       if services_ports is set, network alias will be set (--services-ports docker-compose run flag)
 do_usershell() { _shell "${CONTAINER:-$APP_CONTAINER}" "$APP_USER" run $@;}
 
-#  [services_ports=1] shell [$args]: open root shell inside \$CONTAINER using docker-compose run
-#       if services_ports is set, network alias will be set (--services-ports docker compose flag)
+#  [services_ports=1] shell [$args]: open root shell inside $CONTAINER using docker-compose run
+#       if services_ports is set, network alias will be set (--services-ports docker-compose run flag)
 #  ----
 do_shell()     { _shell "${CONTAINER:-$APP_CONTAINER}" root      run $@;}
 
@@ -125,7 +130,7 @@ _exec() {
     _shell "$container" "$user" exec $@
 }
 
-#  userexec [$args]: exec command or make an interactive shell as $user inside running \$CONTAINER using docker-compose exec
+#  userexec [$args]: exec command or make an interactive shell as $user inside running $CONTAINER using docker-compose exec
 #       APP_USER={{cookiecutter.app_type}} ./control.sh userexec ls /
 #       APP_USER=root APP_CONTAINER=redis ./control.sh userexec ls /
 do_userexec() { _exec "${CONTAINER:-$APP_CONTAINER}" "$APP_USER" $@;}
@@ -146,7 +151,7 @@ _dexec() {
     _shell "$container" "$user" dexec $@
 }
 
-#  duserexec $container  [$args]: exec command or make an interactive shell as $user inside running \$APP_CONTAINER using docker exec
+#  duserexec $container  [$args]: exec command or make an interactive shell as $user inside running $APP_CONTAINER using docker exec
 #       APP_USER={{cookiecutter.app_type}} ./control.sh duserexec -> run interactive shell inside default CONTAINER
 #       APP_USER={{cookiecutter.app_type}} ./control.sh duserexec foo123 -> run interactive shell inside foo123 CONTAINER
 #       APP_USER={{cookiecutter.app_type}} ./control.sh duserexec foo123 ls / -> run comand inside foo123 CONTAINER
