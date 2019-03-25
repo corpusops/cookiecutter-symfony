@@ -30,7 +30,8 @@ x-images:
       - public:/code/app/public
 services:
   nginx:
-    environment: {NO_SSL: "{%if cookiecutter.ssl_in_dev%}1{%endif%}"}
+    environment: 
+      NO_SSL: "{%if not cookiecutter.ssl_in_dev%}1{%endif%}"
     ports:
     - "8008:80"
   backup: {<<: [ *bypass ]}
