@@ -72,5 +72,5 @@
     "redis_image": "corpusops/redis:4.0-alpine",
     "nginx_image": "corpusops/nginx:1.14-alpine",
     "user_model": "",
-    "no_private": "y"
+    "no_private": ""
 }
