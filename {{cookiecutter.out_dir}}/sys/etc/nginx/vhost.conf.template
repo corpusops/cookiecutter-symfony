@@ -154,7 +154,6 @@ server {
     {{'{{'}} if not .nostatics }}
     location {{cookiecutter.statics_uri}}/ {
 
-
         add_header Pragma "cache";
         add_header Cache-Control "public";
     }
@@ -226,6 +225,18 @@ server {
     location ~ ^/mailcatcher/ {
         proxy_pass http://mailcatcher:80;
     }
+
+    {%- if not cookiecutter.no_private %}
+    location /private-files-x-accel-redirect/ {
+        # this endpoint is internal, means only an application like
+        # Symfony may use it to speed up big private files transfer.
+        # With X-Sendfile headers in responses.
+        # But a direct access from a browser will launch a 404
+        internal;
+        alias /code/app/private;
+    }
+    {%- endif%}
+
     {{'{{'}} end }}
     {{'{{'}} template "vhost" $v }}
 

@@ -27,9 +27,12 @@ x-images:
       #- ./sys/etc/supervisor.d:/code/etc/supervisor.d
       - ./local:/code/local
       - ./app:/code/app
-      # remount public (named volume on prod, local remount on dev)
-      # on /code/app/public
+      # remount public/private (named volumes on prod, local remount on dev)
+      # on /code/app/public and /code/app/private
       - ./app/public:/code/app/public
+{%- if not cookiecutter.no_private %}
+      - ./app/private:/code/app/private
+{%- endif%}
 services:
   nginx:
     environment: 
@@ -37,9 +40,12 @@ services:
     ports:
     - "8008:80"
     volumes:
-      # remount public (named volume on prod, local remount on dev)
-      # on /code/app/public
+      # remount public/private (named volumes on prod, local remount on dev)
+      # on /code/app/public and /code/app/private
       - ./app/public:/code/app/public
+{%- if not cookiecutter.no_private %}
+      - ./app/private:/code/app/private
+{%- endif%}
   backup: {<<: [ *bypass ]}
   {%- if not cookiecutter.remove_cron %}
   cron: 
