@@ -27,6 +27,7 @@ x-images:
     volumes:
       # - ./sys/crontab:/etc/cron.d/symfony # nope -> chown root done on that file, prefer a COPY, or a template
       - logs:/logs/
+      - cache:/code/app/var/cache
       - public:/code/app/public
 {%- if not cookiecutter.no_private %}
       - private:/code/app/private
@@ -167,6 +168,9 @@ volumes:
     name: "${{'{'}}{{cookiecutter.app_type.upper()}}_NAME}-private-${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}"
     external: false
 {%- endif%}
+  cache:
+    name: "${{'{'}}{{cookiecutter.app_type.upper()}}_NAME}-cache-${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}"
+    external: false
   logs:
   mails:
 
