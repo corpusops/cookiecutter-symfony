@@ -102,12 +102,6 @@ before_script: &top_before_script
   -re "s/^([^=]+_IMAGE_VERSION=.*)latest/\\1build-${CI_PIPELINE_IID}/g"
   -e "s/^(CI_COMMIT_SHA=).*/\\1${CI_COMMIT_SHA}/g" > .env
 - envsubst < docker.env.dist > docker.env
-# Also we only pull images if we got a successful login
-- sh -ec "if [ -e /docker_login_success ];then
-          for i in ${PRELOAD_IMAGES};do
-            ( echo \"docker pull \$i\" && docker pull \$i || /bin/true )&
-          done;wait;
-         fi"
 # As an aditionnal source of cache, we may restore the first found reference tarball
 # in this order
 # - Current pipeline tarball
@@ -124,6 +118,12 @@ before_script: &top_before_script
      gzip -ckd \"\$i\" | docker load;
      break;
     fi;done;fi"
+# Also we only pull images if we got a successful login
+- sh -ec "if [ -e /docker_login_success ];then
+          for i in ${PRELOAD_IMAGES};do
+            ( echo \"docker pull \$i\" && docker pull \$i || /bin/true )&
+          done;wait;
+         fi"
 
 .manual_job_tpl: &manual_job_tpl
   tags: ["{{cookiecutter.runner_tag}}"]
