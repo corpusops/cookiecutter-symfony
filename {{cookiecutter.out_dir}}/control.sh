@@ -378,7 +378,7 @@ do_linting() { do_test linting; }
 do_coverage() { do_test --coverage-text --colors=never; }
 
 #  open_perms_valve: Give the host user rights to edit most common files inside the container
-#                    wich are generally mounted as docker volumes from the host via posix ACLs
+#                    which are generally mounted as docker volumes from the host via posix ACLs
 #                    This won't work on OSX for now.
 do_open_perms_valve() {
     SUPEREDITOR="${SUPEREDITOR:-$(id -u)}"
