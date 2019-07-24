@@ -36,14 +36,22 @@ CONTROL_COMPOSE_FILES="${CONTROL_COMPOSE_FILES:-docker-compose.yml docker-compos
 COMPOSE_COMMAND=${COMPOSE_COMMAND:-docker-compose}
 ENV_FILES="${ENV_FILES:-.env docker.env}"
 
+join_by() { local IFS="$1"; shift; echo "$*"; }
+
 source_envs() {
     set -o allexport
     for i in $ENV_FILES;do
         if [ -e "$i" ];then
-            eval "$(cat $i\
-                | egrep "^([^#=]+)=" \
-                | sed   's/^\([^=]\+\)=\(.*\)$/export \1=\"\2\"/g' \
-                )"
+            while read vardef;do
+                var="$(echo "$vardef" | awk -F= '{print $1}')"
+                val="$(echo "$vardef" | sed "s/^[^=]\+=//g")"
+                if ( echo "$val" | egrep -q "'" )  || ! ( echo "$val" | egrep '"' ) ;then
+                    eval "$var=\"$val\""
+                else
+                    eval "$var='$val'"
+                fi
+            done < <( \
+                cat $i| egrep -v "^\s*#" | egrep "^([a-zA-Z0-9_]+)=" )
         fi
     done
     set +o allexport
@@ -81,7 +89,7 @@ _shell() {
     local run_mode_args=""
     local initsh=""
     if ( echo $container |egrep -q "$APP_CONTAINERS" );then
-                local initsh="/init.sh"
+        local initsh="/init.sh"
     fi
     if [[ "$run_mode" == "run" ]];then
         run_mode_args="$run_mode_args --rm --no-deps"
@@ -94,13 +102,13 @@ _shell() {
     fi
     if [[ "$run_mode" == "dexec" ]];then
         set -- dvv docker exec -ti \
-            -e TERM=$TERM -e COLUMNS=$COLUMNS -e LINES=$LINES \
+            -e TERM=$TERM -e COLUMNS=${COLUMNS:-80} -e LINES=${LINES:-40} \
             -e SHELL_USER=${SHELL_USER} \
             $container $bargs
     else
         set -- dvv $DC \
             $run_mode $run_mode_args \
-            -e TERM=$TERM -e COLUMNS=$COLUMNS -e LINES=$LINES \
+            -e TERM=$TERM -e COLUMNS=${COLUMNS:-80} -e LINES=${LINES:-40} \
             -e SHELL_USER=${SHELL_USER} \
             $container $initsh $bargs
     fi
@@ -111,6 +119,14 @@ _shell() {
 do_dcompose() {
     set -- dvv $DC "$@"
     "$@"
+}
+
+#  psql $@: wrapper to psql interpreter
+do_psql() {
+    DEBUG=1 dvv $DC run --rm db \
+        /bin/sh -ec "
+psql postgres://\$POSTGRES_USER:\$PGPASSWD@\$POSTGRES_HOST:\$POSTGRES_PORT/\$POSTGRES_DB ${@@Q}
+"
 }
 
 #  ----
@@ -321,32 +337,98 @@ do_runserver() {
 
 do_run_server() { do_runserver $@; }
 
-#  tests [$tests]: run tests
-do_test() {
-    local bargs=${@:-tests}
-    stop_containers
-    # FIXME: fill that
-    set -- vv do_shell \
-        "gosu {{cookiecutter.app_type}} /foo/bin/phpunit --fixme -e $bargs"
-    "$@"
+init_x_debug_config() {
+    export XDEBUG_CONFIG="${XDEBUG_CONFIG:-"remote_enable=${1-0}"}"
 }
 
-do_tests() { do_test $@; }
+#  tests [$tests]: run tests
+do_test() {
+    init_x_debug_config 0
+    local bargs=${@:-tests}
+    set -- do_dcompose run --no-deps --rm \
+        --entrypoint /bin/bash \
+        $APP_CONTAINER -ec ": \
+            && export APP_ENV=test \
+            && export XDEBUG_CONFIG=\"${XDEBUG_CONFIG-}\" \
+            && export NO_COMPOSER=\"${NO_COMPOSER-1}\" \
+            && export NO_MIGRATE=\"${NO_MIGRATE-}\" \
+            && export NO_COLLECT_STATIC=\"${NO_COLLECT_STATIC-}\" \
+            && export NO_STARTUP_LOGS=\"${NO_STARTUP_LOGS-1}\" \
+            && /code/init/init.sh /code/app/bin/phpunit $bargs"
+    "$@"
+}
+do_tests() { do_test_debug $@; }
+
+
+#  test_debug [$tests]: run tests with xdebug
+do_test_debug() {
+    init_x_debug_config 1
+    NO_COLLECT_STATIC="${NO_COLLECT_STATIC-1}" \
+        NO_COMPOSER=${NO_COMPOSER-1} \
+        NO_MIGRATE="${NO_MIGRATE-1}"  \
+            do_test "$@"
+}
+do_tess_debug() { do_test_debug "$@"; }
+
 
 #  linting: run linting tests
 do_linting() { do_test linting; }
 
 #  coverage: run coverage tests
-do_coverage() { do_test coverage; }
+do_coverage() { do_test --coverage-text --colors=never; }
+
+#  open_perms_valve: Give the host user rights to edit most common files inside the container
+#                    wich are generally mounted as docker volumes from the host via posix ACLs
+#                    This won't work on OSX for now.
+do_open_perms_valve() {
+    SUPEREDITOR="${SUPEREDITOR:-$(id -u)}"
+    OPENVALVE_SOURCE="${OPENVALVE_SOURCE:-${W}}"
+    OPENVALVE_INTERNAL_UID="${OPENVALVE_INTERNAL_UID-1000}"
+    DEFAULT_OPENVALVE_ACL="u:$SUPEREDITOR:rwx,u:$OPENVALVE_INTERNAL_UID:rwx,d:u:$SUPEREDITOR:rwx,d:u:$OPENVALVE_INTERNAL_UID:rwx"
+    OPENVALVE_ACL="${OPENVALVE_ACL:-$DEFAULT_OPENVALVE_ACL}"
+    dvv $DC run --no-deps --rm \
+        -v "$OPENVALVE_SOURCE:/openvalve" \
+        -e "SUPEREDITOR=$SUPEREDITOR" \
+        -e "OPENVALVE_ACL=$OPENVALVE_ACL" \
+        --entrypoint sh $APP_CONTAINER \
+        -exc \
+        'if ! ( setfacl --version >/dev/null 2>&1 );then \
+            if ( apt --version >/dev/null 2>&1   );then apt update -y && apt install -y acl; \
+            elif ( apk --version >/dev/null 2>&1 );then apk update && apk add -y acl;fi \
+        fi\
+        && setfacl -R -m $OPENVALVE_ACL /openvalve'
+}
+
+do_osx_sync() {
+        $DC exec $APP_CONTAINER bash -c "chown -Rf symfony var"
+        $DC run --rm -e SHELL_USER=$APP_USER -u $APP_USER $APP_CONTAINER bash -c ": \
+        && : set -x \
+        && do_resync=1 \
+        && docomposerinstall() {
+            if [ 'x'\$do_resync = xv ];then rm -rf vendor/* && do_resync=1;fi \
+            && if [ 'x'\$do_resync = x1 ];then bin/composerinstall;fi; } \
+        && staticsync() {
+            for i in private/ public/;do rsync -av --exclude=.env ../app.host/\$i ./\$i;done \
+            && rsync -av --delete --exclude=vendor  --exclude=.env  --exclude=public --exclude=private --exclude=var --exclude=node_modules ../app.host/ ./ \
+            && if [ 'x'\$do_resync != x ];then bin/console cache:clear;fi; } \
+        && docomposerinstall \
+        && staticsync \
+        && while true;do \
+            staticsync \
+            && docomposerinstall \
+            && printf 'PRESS ENTER TO REFRESH FILES\nv[ENTER] to also refresh vendor (clean & composer/install)\ninput anything else[ENTER] to do an aditionnal cache:clear, without composer install\n? ' \
+            && read do_resync;done"
+}
 
 do_main() {
     local args=${@:-usage}
-    local actions="up_corpusops|shell|usage|install_docker|setup_corpusops"
-    actions="$actions|yamldump|stop|usershell|exec|userexec|dexec|duserexec|dcompose|ps"
+    local actions="up_corpusops|shell|usage|install_docker|setup_corpusops|open_perms_valve"
+    actions="$actions|yamldump|stop|usershell|exec|userexec|dexec|duserexec|dcompose|ps|psql"
     actions="$actions|init|up|fg|pull|build|buildimages|down|rm|run"
-    actions_{{cookiecutter.app_type}}="server|tests|test|coverage|linting|console|php"
-    actions="@($actions|$actions_{{cookiecutter.app_type}})"
+    actions_symfony="osx_sync|server|tests|test|tests_debug|test_debug|coverage|linting|console|php"
+    actions="@($actions|$actions_symfony)"
     action=${1-}
+    source_envs
     if [[ -n $@ ]];then shift;fi
     set_dc
     case $action in

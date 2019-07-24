@@ -5,6 +5,7 @@ x-images:
   {{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
     <<: [ *env ]
     tty: true
+    image: "${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE}:${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}-dev"
     environment: &{{cookiecutter.app_type}}_env
       PHP_USER: "{{cookiecutter.app_type}}"
       PHP_GROUP: "{%if cookiecutter.base_os=='centos'%}apache{%else%}www-data{%endif%}"
@@ -27,11 +28,11 @@ x-images:
     volumes:
       # - ./sys/crontab:/etc/cron.d/symfony # nope -> chown root done on that file, prefer a COPY, or a template
       - logs:/logs/
-      - cache:/code/app/var/cache
-      - public:/code/app/public
-{%- if not cookiecutter.no_private %}
+      - publiccontrib:/code/app/public/files
       - private:/code/app/private
-{%- endif%}
+      - cache:/code/app/var/cache
+      # volume that we need to feed for nginx docker
+      - webroot:/code/app/var/nginxwebroot
 services:
   mailcatcher:
     <<: [ *env ]
@@ -70,7 +71,6 @@ services:
       - postgresql:/var/lib/postgresql/data
   nginx:
     <<: [ *env ]
-    restart: always
     image: "{{cookiecutter.nginx_image}}"
     depends_on:
       - {{cookiecutter.app_type}}
@@ -81,9 +81,7 @@ services:
     volumes:
       - ./sys/etc/nginx/vhost.conf.template:/etc/nginx/conf.d/default.conf.template
       - public:/code/app/public:ro
-{%- if not cookiecutter.no_private %}
       - private:/code/app/private:ro
-{%- endif%}
       - logs:/logs/
       - nginx-certs:/certs
     command:
@@ -113,6 +111,16 @@ services:
       IMAGE_MODE: fg
     depends_on:
     - {{cookiecutter.app_type}}
+  {{cookiecutter.app_type}}-supervisor:
+    <<: [ *{{cookiecutter.app_type}} ]
+    environment:
+      <<: [ *{{cookiecutter.app_type}}_env ]
+      IMAGE_MODE: supervisor
+      NO_MIGRATE: 1
+      NO_COMPOSER: 1
+      NO_COLLECT_STATIC: 1
+    depends_on:
+    - {{cookiecutter.app_type}}
   {%- if not cookiecutter.remove_cron %}
   cron:
     <<: [ *{{cookiecutter.app_type}} ]
@@ -127,10 +135,8 @@ services:
     image: "corpusops/dbsmartbackup:pg10"
     restart: always
     volumes:
-      - backupdb-dumps:/srv/backups/
-      - backupdb-logs:/srv/backups/logs/
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - ./local/backup/setup/reconfigure.yml:/setup/reconfigure.yml:ro
+      - backupdb-dumps:/var/db_smart_backup/
+      - backupdb-logs:/var/db_smart_backup/logs/
 {% if db_tag == 'postgres' %}  setup-postgres:
     <<: [ *env ]
     image: corpusops/pgrouting:10.1-2.5.4
@@ -160,17 +166,10 @@ volumes:
   postgresql:
   {%if cookiecutter.with_redis%}redis:{%endif%}
   nginx-certs:
-  public:
-    name: "${{'{'}}{{cookiecutter.app_type.upper()}}_NAME}-public-${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}"
-    external: false
-{%- if not cookiecutter.no_private %}
+  webroot:
+  publiccontrib:
   private:
-    name: "${{'{'}}{{cookiecutter.app_type.upper()}}_NAME}-private-${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}"
-    external: false
-{%- endif%}
   cache:
-    name: "${{'{'}}{{cookiecutter.app_type.upper()}}_NAME}-cache-${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}"
-    external: false
   logs:
   mails:
 

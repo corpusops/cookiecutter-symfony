@@ -241,7 +241,6 @@ server {
     location ~ ^/mailcatcher/ {
         proxy_pass http://mailcatcher:8025;
     }
-    {%- if not cookiecutter.no_private %}
 
     location /private-files-x-accel-redirect/ {
         # this endpoint is internal, means only an application like
@@ -251,7 +250,6 @@ server {
         internal;
         alias /code/app/private;
     }
-    {%- endif%}
 
     {{'{{'}} end }}
     {{'{{'}} template "vhost" $v }}

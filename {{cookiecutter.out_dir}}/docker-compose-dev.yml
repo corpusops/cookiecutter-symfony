@@ -3,53 +3,60 @@ x-images:
   bypass: &bypass
     command: 'sh -c "while true;do echo notstarted;sleep 65000;done"'
     entrypoint: 'sh -c "while true;do echo notstarted;sleep 65000;done"'
-    restart: "no"
   {{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
     environment: &{{cookiecutter.app_type}}_env
       APP_ENV: "dev"
       APP_SECRET: "42"
       PHP_DISPLAY_ERROR: 1
-      # NO_MIGRATE: "1"
-      # NO_COLLECT_STATIC: "1"
-      # NO_CACHE_CLEAR: "1"
-      # NO_COMPOSER: "1"
-    volumes: &symfony_volumes
+      NO_MIGRATE: "1"
+      NO_COLLECT_STATIC: "1"
+      NO_CACHE_CLEAR: "1"
+      NO_COMPOSER: "1"
+    volumes: &{{cookiecutter.app_type}}_volumes
+      #- ./local/symfony-deploy-common/sys/sudoer:/etc/sudoers.d/$APP_TYPE
+      - ./sys/sbin:/code/init/sbin/
+      - ./sys/sbin:/code/sys/sbin/
+      - ./sys/sbin:/code/sbin/
       {%-if cookiecutter.use_submodule_for_deploy_code %}
-      #- ./{{cookiecutter.deploy_project_dir}}/sys/sudoer:/etc/sudoers.d/$APP_TYPE
-      - ./{{cookiecutter.deploy_project_dir}}/sys/init.sh:/code/sys/init.sh
-      - ./{{cookiecutter.deploy_project_dir}}/sys/etc/supervisor.d:/code/sys/etc/supervisor.d
-      - ./{{cookiecutter.deploy_project_dir}}/sys/etc/php-fpm.d:/code/sys/etc/php-fpm.d
-      - ./{{cookiecutter.deploy_project_dir}}:/code/{{cookiecutter.deploy_project_dir}}
-      {%-else %}
-      #- ./sys/sudoer:/etc/sudoers.d/$APP_TYPE
+      - ./local/symfony-deploy-common/sys/init.sh:/code/sys/init.sh
+      - ./local/symfony-deploy-common/sys/init.sh:/code/init/init.sh
+      - ./local/symfony-deploy-common/sys/etc/supervisor.d:/code/sys/etc/supervisor.d
+      - ./local/symfony-deploy-common/sys/etc/php-fpm.d:/code/sys/etc/php-fpm.d
+      - ./local/symfony-deploy-common:/code/local/symfony-deploy-common
+      {%- else%}
       - ./sys/init.sh:/code/sys/init.sh
-      {%endif%}
-      #- ./sys/etc/supervisor.d:/code/etc/supervisor.d
+      - ./sys/init.sh:/code/init/init.sh
+      - ./sys/etc/supervisor.d:/code/sys/etc/supervisor.d
+      - ./sys/etc/php-fpm.d:/code/sys/etc/php-fpm.d
+      - ./:/code/local/symfony-deploy-common
+      {%- endif%}
+      - ./sys/etc/supervisor.d:/code/etc/supervisor.d
       - ./local:/code/local
       - ./app:/code/app
       # remount public/private (named volumes on prod, local remount on dev)
-      # on /code/app/public and /code/app/private
-      - ./app/var/cache:/code/app/var/cache
-      - ./app/public:/code/app/public
-{%- if not cookiecutter.no_private %}
+      # on /code/app/public/files and /code/app/private
+      - ./app/public/files:/code/app/public/files
       - ./app/private:/code/app/private
-{%- endif%}
+      - ./app/var/cache:/code/app/var/cache
 services:
+  db:
+    ports:
+    - "8543:5432"
   nginx:
-    environment: 
+    environment:
       NO_SSL: "{%if not cookiecutter.ssl_in_dev%}1{%endif%}"
+      NO_FORCE_SSL: "{%if not cookiecutter.ssl_in_dev%}1{%endif%}"
     ports:
     - "8008:80"
     volumes:
       # remount public/private (named volumes on prod, local remount on dev)
-      # on /code/app/public and /code/app/private
-      - ./app/public:/code/app/public
-{%- if not cookiecutter.no_private %}
-      - ./app/private:/code/app/private
-{%- endif%}
+      # on /code/app/public/files and /code/app/private
+      - ./app/public/:/code/app/public
+      - ./app/public/files:/code/app/public/files:ro
+      - ./app/private:/code/app/private:ro
   backup: {<<: [ *bypass ]}
   {%- if not cookiecutter.remove_cron %}
-  cron: 
+  cron:
     build:
       context: "."
       args:
@@ -66,8 +73,9 @@ services:
     environment:
       <<: [ *{{cookiecutter.app_type}}_env ]
       IMAGE_MODE: phpfpm
-    ports:
-      - "9000:9000"
+      PHP_XDEBUG_REMOTE: 1
+      PHP_XDEBUG_IP: host.docker.internal
+      PHP_XDEBUG_PORT: 9000
   {{cookiecutter.app_type}}-fg:
     build:
       context: "."
@@ -77,5 +85,16 @@ services:
     environment:
       <<: [ *{{cookiecutter.app_type}}_env ]
       IMAGE_MODE: fg
+      NO_MIGRATE: 1
+      NO_COMPOSER: 1
+      NO_COLLECT_STATIC: 1
     ports:
       - "8000:8000"
+  symfony-supervisor:
+    <<: [ *symfony ]
+    environment:
+      <<: [ *symfony_env ]
+      IMAGE_MODE: supervisor
+      NO_MIGRATE: 1
+      NO_COMPOSER: 1
+      NO_COLLECT_STATIC: 1

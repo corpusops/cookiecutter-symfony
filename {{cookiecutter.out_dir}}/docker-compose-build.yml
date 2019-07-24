@@ -11,3 +11,4 @@ services:
   {%-endif%}
   {{cookiecutter.app_type}}: {<<: [ *{{cookiecutter.app_type}} ]}
   {{cookiecutter.app_type}}-fg: {<<: [ *{{cookiecutter.app_type}} ]}
+  {{cookiecutter.app_type}}-supervisor: {<<: [ *{{cookiecutter.app_type}} ]}
