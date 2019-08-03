@@ -44,7 +44,7 @@ source_envs() {
         if [ -e "$i" ];then
             while read vardef;do
                 var="$(echo "$vardef" | awk -F= '{print $1}')"
-                val="$(echo "$vardef" | sed "s/^[^=]\+=//g")"
+                val="$(echo "$vardef" | awk '{gsub(/^[^=]+=/, "");print;}')"
                 if ( echo "$val" | egrep -q "'" )  || ! ( echo "$val" | egrep '"' ) ;then
                     eval "$var=\"$val\""
                 else
