@@ -26,6 +26,7 @@
     "dev_host": "{{cookiecutter.dev_domain.replace('-{0}.'.format(cookiecutter.lname), '-docker-{0}.'.format(cookiecutter.lname))}}",
     "prod_host": "{{cookiecutter.prod_domain.replace('-{0}.'.format(cookiecutter.lname), '-docker-{0}.'.format(cookiecutter.lname))}}",
     "staging_port": "22",
+    "remove_fg": "1",
     "remove_cron": "",
     "enable_cron": "",
     "qa_port": "22",
@@ -33,6 +34,9 @@
     "symfony_project_name": "{{cookiecutter.lname}}",
     "prod_port": "22",
     "symfony_settings": "/code/app/.env",
+    "public_path": "/code/app/public/",
+    "private_path": "/code/app/private/",
+    "bin_path": "/code/app/bin/",
     "mail_domain": "{{cookiecutter.tld_domain }}",
     "infra_domain": "{{cookiecutter.tld_domain }}",
     "git_server": "gitlab.{{cookiecutter.infra_domain}}",
@@ -41,7 +45,8 @@
     "git_user": "",
 
     "test_tests": "y",
-    "test_linting": "y",
+    "test_linting": "",
+    "test_coverage": "",
     "haproxy": "",
     "git_url": "{{cookiecutter.git_scheme}}://{%if cookiecutter.git_user%}{{cookiecutter.git_user}}@{%endif%}{{cookiecutter.git_project_server}}",
     "git_project": "{{cookiecutter.lname}}",
@@ -57,6 +62,7 @@
     "simple_docker_image": "{{cookiecutter.git_ns.split('/')[0].lower()}}/{{cookiecutter.lname}}",
     "docker_image": "{%if cookiecutter.docker_registry%}{{cookiecutter.docker_registry}}/{%endif%}{{cookiecutter.simple_docker_image}}",
     "db_mode": "postgresql",
+    "db_version": "10",
     "tz": "Europe/Paris",
     "use_i18n": "y",
     "use_l10n": "y",
@@ -71,5 +77,5 @@
     "mysql_image": "corpusops/mysql",
     "redis_image": "corpusops/redis:4.0-alpine",
     "nginx_image": "corpusops/nginx:1.14-alpine",
-    "user_model": "",
+    "user_model": ""
 }

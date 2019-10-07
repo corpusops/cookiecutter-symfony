@@ -29,7 +29,7 @@ variables:
   POSTGRES_PASSWORD: password
   POSTGRES_HOST: db
   # services launched during tests
-  DOCKER_SERVICES: "db redis mailcatcher"
+  DOCKER_SERVICES: "db{%if cookiecutter.with_redis %} redis{%endif%} mailcatcher"
   # Those services underlying images will be built
   DOCKER_BUILT_SERVICES: "{{cookiecutter.app_type}}{%if not cookiecutter.remove_cron%} cron{% endif %}"
   # Main image
@@ -198,11 +198,9 @@ build_images: &build_images
 {% set testsc = (not cookiecutter.test_tests) and '#' or '' -%}
 {{testsc}}tests:
 {{testsc}}  <<: [ *tests_tpl ]
-{{testsc}}  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
 {{testsc}}  script:
 {{testsc}}  - *launch_test_stack
 {{testsc}}  - ./control.sh test
-{{testsc}}  - ./control.sh coverage
 
 {% set lintingc = (not cookiecutter.test_linting) and '#' or '' -%}
 {{lintingc}}linting:
@@ -210,6 +208,15 @@ build_images: &build_images
 {{lintingc}}  script:
 {{lintingc}}  - *launch_test_stack
 {{lintingc}}  - ./control.sh linting
+
+{% set testscc = (not cookiecutter.test_coverage) and '#' or '' -%}
+{{testscc}}testcoverage:
+{{testscc}}  <<: [ *tests_tpl ]
+{{testscc}}  only: [master]
+{{testscc}}  coverage: '/^\s*Lines:\s*\d+.\d+\%/'
+{{testscc}}  script:
+{{testscc}}  - *launch_test_stack
+{{testscc}}  - ./control.sh coverage
 
 .release_tpl: &release_tpl
   stage: release
@@ -303,6 +310,8 @@ teardown_env: &teardown_env
 {{devhostdeploycomment}}    <<: [ *deploy_vars_tpl ]
 {{devhostdeploycomment}}    A_ENV_NAME: dev
 {{devhostdeploycomment}}  only: [master, tags]
+{{devhostdeploycomment}}  script: [master, tags]
+{{devhostdeploycomment}}  - .ansible/scripts/call_ansible.sh -vv -l $A_ENV_NAME "${DEPLOY_PLAYBOOK}"
 {{devhostdeploycomment}}  environment:
 {{devhostdeploycomment}}    name: dev
 {{devhostdeploycomment}}    url: https://{{cookiecutter.dev_domain}}

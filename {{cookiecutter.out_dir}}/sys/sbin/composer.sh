@@ -41,5 +41,5 @@ fi
     && $GOSU_CMD /usr/local/bin/composer clear-cache \
     {%if cookiecutter.base_os=='centos'%}&& $GOSU_CMD echo "afwully disabling tls, seems CentOS+TLS is bad for https://codeload.github.com" \
     && $GOSU_CMD /usr/local/bin/composer config -g disable-tls true {%endif%}\
-    && $GOSU_CMD /usr/local/bin/composer install  --prefer-dist --optimize-autoloader --no-interaction --verbose $@
+    && $GOSU_CMD /usr/local/bin/composer --verbose $@
 )

@@ -29,10 +29,14 @@ APP_CONTAINERs="^($APP_CONTAINER|celery)"
 DEBUG=${DEBUG-}
 NO_BACKGROUND=${NO_BACKGROUND-}
 BUILD_PARALLEL=${BUILD_PARALLEL-1}
-BUILD_CONTAINERS="$APP_CONTAINER $APP_CONTAINER-fg {%-if not cookiecutter.remove_cron%} cron{%endif%}"
+BUILD_CONTAINERS="$APP_CONTAINER {%-if not cookiecutter.remove_fg%} $APP_CONTAINER-fg{%endif%} {%-if not cookiecutter.remove_cron%} cron{%endif%}"
 EDITOR=${EDITOR:-vim}
 DIST_FILES_FOLDERS=". src/*/settings"
-CONTROL_COMPOSE_FILES="${CONTROL_COMPOSE_FILES:-docker-compose.yml docker-compose-dev.yml}"
+DEFAULT_CONTROL_COMPOSE_FILES="docker-compose.yml docker-compose-dev.yml"
+if [ "$(uname)" = "Darwin" ];then
+    DEFAULT_CONTROL_COMPOSE_FILES="$DEFAULT_CONTROL_COMPOSE_FILES docker-compose-darwin.yml"
+fi
+CONTROL_COMPOSE_FILES="${CONTROL_COMPOSE_FILES:-$DEFAULT_CONTROL_COMPOSE_FILES}"
 COMPOSE_COMMAND=${COMPOSE_COMMAND:-docker-compose}
 ENV_FILES="${ENV_FILES:-.env docker.env}"
 

@@ -1,0 +1,3 @@
+MAILTO=""
+# Launching a cron scheduler
+# * * * * *     [ ! -e {{ cookiecutter.private_path }}SUSPEND_CRONS ] && {{ cookiecutter.bin_path }}console app:schedule-crons

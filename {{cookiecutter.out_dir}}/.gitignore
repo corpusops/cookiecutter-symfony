@@ -14,6 +14,9 @@ __pycache__
 /logs/
 
 # IDE settings
+.buildpath
+.settings
+.project
 .vscode
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -28,6 +31,7 @@ __pycache__
 .settings/
 
 # compiled output
+/docs/_build
 /dist
 /tmp
 /angular/**/*.js

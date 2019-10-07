@@ -16,8 +16,8 @@ gcc
 gcc-c++
 make
 libxslt-1.1
-{% if 'post' in cookiecutter.db_mode %}postgresql{% endif %}
-{% if 'mysql' in cookiecutter.db_mode %}mysql{% endif %}
+{% if 'post' in cookiecutter.db_mode %}postgresql{{ cookiecutter.db_version }}{% endif %}
+{% if 'mysql' in cookiecutter.db_mode %}mysql{{ cookiecutter.db_version }}{% endif %}
 unzip
 autoconf
 automake
@@ -31,6 +31,7 @@ vim
 lsof
 php
 php-fpm
+php-opcache
 php-bcmath
 php-cli
 php-common
@@ -62,3 +63,7 @@ php-soap
 # php-symfony-yaml
 php-xml
 php-xmlrpc
+php-xdebug
+supervisor
+openssl
+rsync

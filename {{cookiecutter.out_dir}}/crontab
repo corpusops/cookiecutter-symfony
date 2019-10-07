@@ -1,1 +1,0 @@
-{%if not cookiecutter.enable_cron%}#{%endif%}0 7 * * * {{cookiecutter.app_type}} /code/venv/bin/python /code/src/manage.py execute_action --action=EVERY_DAY &> /logs/cron_action_every_day.log
