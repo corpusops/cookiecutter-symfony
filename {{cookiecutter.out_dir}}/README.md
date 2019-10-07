@@ -1,4 +1,4 @@
-# Initialise your development environment
+# Initialize your development environment
 
 All following commands must be run only once at project installation.
 
@@ -30,7 +30,6 @@ local/*/bin/cops_apply_role --become \
   [docker](https://docs.docker.com/install/#releases) and
   [docker-compose](https://docs.docker.com/compose/install/).
 
-
 ## Update corpusops
 
 You may have to update corpusops time to time with
@@ -38,7 +37,7 @@ You may have to update corpusops time to time with
 ```sh
 ./control.sh up_corpusops
 ```
-￼
+
 ## Configuration
 
 Use the wrapper to init configuration files from their ``.dist`` counterpart
@@ -47,8 +46,6 @@ and adapt them to your needs.
 ```bash
 ./control.sh init
 ```
-
-**Hint**: You may have to add `0.0.0.0` to `ALLOWED_HOSTS` in `local.py`.
 
 ## Login to the app docker registry
 
@@ -97,15 +94,6 @@ After a last verification of the files, to run with docker, just type:
 ./control.sh pull # Call the docker compose pull command
 ./control.sh up # Should be launched once each time you want to start the stack
 ```
-
-## Launch app in foreground
-
-```bash
-./control.sh fg
-```
-
-**⚠️ Remember ⚠️** to use `./control.sh up` to start the stack before.
-
 ## Start a shell inside the {{cookiecutter.app_type}} container
 
 - for user shell
@@ -113,6 +101,7 @@ After a last verification of the files, to run with docker, just type:
     ```sh
     ./control.sh usershell
     ```
+
 - for root shell
 
     ```sh
