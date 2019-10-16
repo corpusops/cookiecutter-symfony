@@ -47,7 +47,7 @@ services:
       NO_SSL: "{%if not cookiecutter.ssl_in_dev%}1{%endif%}"
       NO_FORCE_SSL: "{%if not cookiecutter.ssl_in_dev%}1{%endif%}"
     ports:
-    - "8008:80"
+    - "{{cookiecutter.vm_http_port}}:80"
     volumes:
       # remount public/private (named volumes on prod, local remount on dev)
       # on /code/app/public/files and /code/app/private

@@ -348,6 +348,76 @@ init_x_debug_config() {
     export XDEBUG_CONFIG="${XDEBUG_CONFIG:-"remote_enable=${1-0}"}"
 }
 
+_cypress_env() {
+    target=$1
+    if [ "x${target}" == "x" ]; then
+        echo "You need to privide an url argument like http://www.example.com"
+        exit 1
+    fi
+    echo "CYPRESS_baseUrl=${target}" > "${W}/e2e/cypress.env"
+    export CYPRESS_baseUrl=${target}
+}
+
+#  cypress_run [$target]: run cypresse e2e tests
+# using a docker cypress image
+do_cypress_run() {
+    _cypress_env $1
+    shift
+    do_dcompose -f docker-compose-cypress.yml up \
+      --force-recreate \
+      --no-deps \
+      --exit-code-from cypress \
+      cypress $@
+}
+
+#  cypress_open [$target]: open cypress gui
+# Using a local npm installation
+do_cypress_open() {
+    _cypress_env $1
+    echo "Testing local node dependencies"
+    set +e
+     if ( . ~/.nvm/nvm.sh && nvm --version > /dev/null 2>&1 ); then
+        echo " * nvm OK"
+        . ~/.nvm/nvm.sh
+        nvm use stable
+    else
+        echo " * no nvm"
+    fi
+    `npm --version > /dev/null 2>&1`
+    if [ "x${?}" != "x0" ]; then
+        echo "You need to install npm (maybe via nvm) on your host before!"
+        exit 1
+    fi
+    echo " * npm OK"
+    set -e
+    cd "${W}/e2e"
+    if [ ! -f "${W}/e2e/node_modules/cypress/bin/cypress" ]; then
+        echo " * cypress not installed yet"
+        npm install
+    fi
+    npx cypress open
+}
+
+#  cypress_run_local: run cypresse e2e tests on local containers
+do_cypress_run_local() {
+    do_cypress_run http://{{cookiecutter.vm_domain}}:{{cookiecutter.vm_http_port}} "$@"
+}
+
+#  cypress_run_dev: run cypresse e2e tests on dev server
+do_cypress_run_dev() {
+    do_cypress https://{{cookiecutter.dev_domain}} "$@"
+}
+
+#  cypress_open_dev: open cypresse e2e gui on dev server
+do_cypress_open_dev() {
+    do_cypress_open  https://{{cookiecutter.dev_domain}} "$@"
+}
+
+#  cypress_open_dev: open cypresse e2e gui on local containers
+do_cypress_open_local() {
+    do_cypress_open http://{{cookiecutter.vm_domain}}:{{cookiecutter.vm_http_port}} "$@"
+}
+
 #  tests [$tests]: run tests
 do_test() {
     init_x_debug_config 0
@@ -432,6 +502,7 @@ do_main() {
     local actions="up_corpusops|shell|usage|install_docker|setup_corpusops|open_perms_valve"
     actions="$actions|yamldump|stop|usershell|exec|userexec|dexec|duserexec|dcompose|ps|psql"
     actions="$actions|init|up|fg|pull|build|buildimages|down|rm|run"
+    actions="$actions|cypress_open|cypress_run|cypress_open_local|cypress_open_dev|cypress_run_local|cypress_run_dev"
     actions_symfony="osx_sync|server|tests|test|tests_debug|test_debug|coverage|linting|console|php"
     actions="@($actions|$actions_symfony)"
     action=${1-}
