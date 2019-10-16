@@ -61,7 +61,7 @@ virtualenv --python=python3 ~/tools/cookiecutter
 
 - Push the generated files (here on `~/out_dir`) to your new project
 
-## Check the extra needed contents
+### Check the extra needed contents
 
 We provide a basic `app/composer.json` file. N**No doubt** that you may have to
 complement it.
@@ -83,6 +83,13 @@ specifc configurations like this:)
 ```
 
 Check also the symfony migrate commands or anything needed in the created database.
+
+### Use a drupal 8 flavor
+
+Run the symfony project generation but add two arguments on the cookiecutter command line:
+
+- ``app_type=drupal`` : as this is used in most names (like project user, container names)
+- ``drupal8=y`` to add Drupal8 dedicated stuff
 
 ## Init dev and and test locally
 
