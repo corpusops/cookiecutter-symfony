@@ -26,12 +26,15 @@ virtualenv --python=python3 ~/tools/cookiecutter
     # activate cookiecutter env
     . ~/tools/cookiecutter/bin/activate
     # And launch the new 'foobar' project generation!
+    # check most variables in cookiecutter.json file
     cookiecutter --no-input -f -o ~/out_dir \
         https://github.com/corpusops/cookiecutter-symfony.git \
         name=foobar \
-        tld_domain=mydomain.com \
-        git_server=git.foo.com \
-        git_ns=bar \
+        tld_domain=zorg.com \
+        git_server=gitlab.makina-corpus.net \
+        git_ns=zorg \
+        local_http_port=8009 \
+        maintenance_no_503="y" \
         dev_port=40001 staging_port=40003 qa_host="" prod_port=40010
     cd ~/out_dir
     # review before commit
@@ -43,6 +46,7 @@ virtualenv --python=python3 ~/tools/cookiecutter
 -  notable options behaviors:
     - ``use_submodule_for_deploy_code=``: copy deploy submodule inside
       project for a standalone deployment (no common deploy)
+    - ``local_http_port=NNNN``: local port use by devs to access the project after /etc/hosts edition to map 127.0.0.1 to the ``local_domain`` variable (something like http://project_name.local:local_http_port)
     - ``php_ver=X.Y``: php version to use
     - ``remove_cron=y``: will remove cron image and related configuration
     - ``enable_cron=``: will soft disable (comment crontab) without removing cron.
@@ -56,16 +60,17 @@ virtualenv --python=python3 ~/tools/cookiecutter
 
 - Push the generated files (here on `~/out_dir`) to your new project
 
-
 ## Fill ansible inventory
 
 ### Generate ssh deploy key
+
 ```ssh
 cd local
 ssh-keygen -t rsa -b 2048 -N '' -C deploy -f deploy
 ```
 
 ### Generate vaults password file
+
 ```sh
 export CORPUSOPS_VAULT_PASSWORD=SuperVerySecretPassword
 .ansible/scripts/setup_vaults.sh
@@ -75,6 +80,7 @@ export CORPUSOPS_VAULT_PASSWORD=SuperVerySecretPassword
 - You would certainly also add ``REGISTRY_USER`` & ``REGISTRY_PASSWORD``.
 
 ### Move vault templates to their encrypted counterparts
+
 For each file which needs to be crypted
 ```sh
 # to find them
@@ -82,9 +88,11 @@ find .ansible/inventory/group_vars/|grep encrypt
 ```
 
 ### Generate vaults
+
 Also open and read both your project top ``README.md`` and the ``.ansible/README.md``
 
 You need to
+
 1. open in a editor:
 
     ```sh
@@ -106,6 +114,7 @@ copy/paste/adapt the content
 - ⚠️Please note⚠️: that you will need to put the previously generated ssh deploy key in ``all/default.yml``
 
 ## Init dev and and test locally
+
 ```sh
 ./control.sh init  # init conf files
 ./control.sh build symfony
@@ -113,11 +122,13 @@ copy/paste/adapt the content
 ```
 
 ## Push to gitlab
+
 - Push to gitlab and run the dev job until it succeeds
 - Trigger the dev image release job until it succeeds
 
 
 ## Deploy manually
+
 - Deploy manually one time to see everything is in place<br/>
   Remember:
     - Your local copy is synced as the working directory on target env (with exclusions, see playbooks)
@@ -131,6 +142,7 @@ copy/paste/adapt the content
     ```
 
 ## Update project
+
 You can regenerate at a later time the project
 ```sh
 local/regen.sh  # and verify new files and updates
