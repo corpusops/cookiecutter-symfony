@@ -41,7 +41,7 @@ x-images:
 services:
   db:
     ports:
-    - "8543:5432"
+    - "{{ cookiecutter.local_direct_db_port }}:5432"
   nginx:
     environment:
       NO_SSL: "{%if not cookiecutter.ssl_in_dev%}1{%endif%}"

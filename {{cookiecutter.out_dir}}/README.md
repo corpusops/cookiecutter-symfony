@@ -95,6 +95,20 @@ After a last verification of the files, to run with docker, just type:
 ./control.sh up # Should be launched once each time you want to start the stack
 ```
 
+You may need some alteration on your local `/etc/hosts` to reach the site using
+domains and ports declared in docker.env
+
+For example if you have:
+
+```bash
+grep ABSOLUTE docker.env
+  ABSOLUTE_URL_SCHEME=http
+  ABSOLUTE_URL_DOMAIN=foobar.local
+  ABSOLUTE_URL_PORT=8009
+```
+
+The project should be reached in http://foobar.local:8009 and foobar.local must resolve to 127.0.0.1.
+
 ## Start a shell inside the {{cookiecutter.app_type}} container
 
 - for user shell
