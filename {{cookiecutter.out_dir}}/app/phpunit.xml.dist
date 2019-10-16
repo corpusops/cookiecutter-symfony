@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- https://phpunit.de/manual/current/en/appendixes.configuration.html -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/6.5/phpunit.xsd"
+         backupGlobals="false"
+         colors="true"
+         bootstrap="src/.bootstrap.php"
+>
+    <php>
+        <ini name="error_reporting" value="-1" />
+        <env name="APP_ENV" value="test" />
+        <env name="SHELL_VERBOSITY" value="0" />
+        <env name="TEST_FULL_MATRIX" value="0" />
+        <!--
+        <env name="ENABLE_EXT_PGSQL" value="1" />
+        <env name="ENABLE_PDO" value="1" />
+        <env name="ENABLE_SECURITY" value="0" />
+        <env name="PGSQL_HOSTNAME" value="db" />
+        <env name="PGSQL_DATABASE" value="db" />
+        <env name="PGSQL_PASSWORD" value="password" />
+        <env name="PGSQL_USERNAME" value="user" />
+         -->
+    </php>
+
+    <testsuites>
+        <!-- Domain -->
+        <testsuite name="Foo">
+            <directory>tests/Foo/Bar</directory>
+        </testsuite>
+        <!-- Tests being ported to new structure -->
+        <testsuite name="LegacyFunctionnal">
+            <directory>tests/Functionnal</directory>
+        </testsuite>
+        <testsuite name="LegacyUnit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+
+    </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory>src</directory>
+            <directory>tests</directory>
+            <exclude>
+                <directory>src/Domain/Datasource</directory>
+                <directory>src/Domain/Enum</directory>
+                <directory>src/Hydrator</directory>
+                <directory>src/Migrations</directory>
+                <directory>vendor</directory>
+                <file>src/.bootstrap.php</file>
+                <file>src/Kernel.php</file>
+            </exclude>
+        </whitelist>
+    </filter>
+
+    <listeners>
+        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener" />
+    </listeners>
+</phpunit>
