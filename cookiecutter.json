@@ -14,6 +14,7 @@
 
     "local_domain": "{{cookiecutter.lname}}.local",
     "local_http_port": "8008",
+    "local_direct_db_port": "8545",
     "dev_domain": "dev-{{cookiecutter.lname}}.{{cookiecutter.tld_domain}}",
     "qa_domain": "qa-{{cookiecutter.lname}}.{{cookiecutter.tld_domain}}",
     "staging_domain": "staging-{{cookiecutter.lname}}.{{cookiecutter.tld_domain}}",
