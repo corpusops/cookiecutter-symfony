@@ -133,7 +133,7 @@ services:
       - backupdb-logs:/var/db_smart_backup/logs/
 {% if db_tag == 'postgres' %}  setup-postgres:
     <<: [ *env ]
-    image: corpusops/postgres:10
+    image: "corpusops/postgres:10"
     depends_on:
     - db
     entrypoint:
