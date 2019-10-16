@@ -80,7 +80,8 @@ services:
       - mailcatcher:mailcatcher
     volumes:
       - ./sys/etc/nginx/vhost.conf.template:/etc/nginx/conf.d/default.conf.template
-      - public:/code/app/public:ro
+      - webroot:/code/app/public
+      - publiccontrib:/code/app/public/files:ro
       - private:/code/app/private:ro
       - logs:/logs/
       - nginx-certs:/certs
@@ -125,14 +126,14 @@ services:
   {% endif %}
   backup:
     <<: [ *env ]
-    image: "corpusops/dbsmartbackup:pg10"
+    image: "corpusops/dbsmartbackup:postgres-10"
     restart: always
     volumes:
       - backupdb-dumps:/var/db_smart_backup/
       - backupdb-logs:/var/db_smart_backup/logs/
 {% if db_tag == 'postgres' %}  setup-postgres:
     <<: [ *env ]
-    image: corpusops/pgrouting:10.1-2.5.4
+    image: corpusops/postgres:10
     depends_on:
     - db
     entrypoint:
