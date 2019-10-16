@@ -1,4 +1,4 @@
-# {{ coockiecutter.name }}
+# {{ cookiecutter.name }}
 
 ## Après chaque pull
 
