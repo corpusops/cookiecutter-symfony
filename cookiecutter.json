@@ -45,6 +45,8 @@
     "git_user": "",
 
     "test_tests": "y",
+    "test_e2e": "y",
+    "test_cypress": "y",
     "test_linting": "",
     "test_coverage": "",
     "haproxy": "",

@@ -10,5 +10,11 @@ services:
   cron: {<<: [ *{{cookiecutter.app_type}} ]}
   {%-endif%}
   {{cookiecutter.app_type}}: {<<: [ *{{cookiecutter.app_type}} ]}
-  {{cookiecutter.app_type}}-fg: {<<: [ *{{cookiecutter.app_type}} ]}
   {{cookiecutter.app_type}}-supervisor: {<<: [ *{{cookiecutter.app_type}} ]}
+  cypress:
+    <<: [ *env ]
+    image: cypress
+    build: ./e2e
+    volumes:
+      - ./e2e/cypress:/app/cypress
+      - ./e2e/cypress.json:/app/cypress.json

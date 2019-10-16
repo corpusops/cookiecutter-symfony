@@ -104,13 +104,6 @@ services:
     - SUPERVISORD_CONFIGS=/etc/supervisor.d/cron /etc/supervisor.d/nginx /etc/supervisor.d/rsyslog
   {{cookiecutter.app_type}}:
     <<: [ *{{cookiecutter.app_type}} ]
-  {{cookiecutter.app_type}}-fg:
-    <<: [ *{{cookiecutter.app_type}} ]
-    environment:
-      <<: [ *{{cookiecutter.app_type}}_env ]
-      IMAGE_MODE: fg
-    depends_on:
-    - {{cookiecutter.app_type}}
   {{cookiecutter.app_type}}-supervisor:
     <<: [ *{{cookiecutter.app_type}} ]
     environment:

@@ -40,7 +40,7 @@ __pycache__
 /angular/**/*.map
 
 # dependencies
-/node_modules
+node_modules
 
 # Virtualenv
 /venv/
@@ -64,8 +64,9 @@ yarn-error.log
 *~
 
 # e2e
-/e2e/*.js
-/e2e/*.map
+/e2e/cypress/screenshots
+/e2e/cypress/videos
+/e2e/cypress.env
 
 #System Files
 .DS_Store

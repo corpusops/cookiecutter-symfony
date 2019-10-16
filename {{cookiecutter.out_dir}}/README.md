@@ -94,6 +94,7 @@ After a last verification of the files, to run with docker, just type:
 ./control.sh pull # Call the docker compose pull command
 ./control.sh up # Should be launched once each time you want to start the stack
 ```
+
 ## Start a shell inside the {{cookiecutter.app_type}} container
 
 - for user shell
@@ -134,14 +135,13 @@ services_ports=1 ./control.sh usershell
 ./manage.py runserserver 0.0.0.0:8000
 ```
 
-## Calling Django manage commands
+## Calling Symfony console commands
 
 ```sh
-./control.sh manage [options]
+./control.sh console [options]
 # For instance:
-# ./control.sh manage migrate
-# ./control.sh manage shell
-# ./control.sh manage createsuperuser
+# ./control.sh console doctrine:migrations:migrate
+# ./control.sh console cache:clear
 # ...
 ```
 
@@ -157,6 +157,7 @@ services_ports=1 ./control.sh usershell
 **⚠️ Remember ⚠️** to use `./control.sh up` to start the stack before.
 
 ## File permissions
+
 If you get annoying file permissions problems on your host in development, you can use the following routine to (re)allow your host
 user to use files in your working directory
 
@@ -176,6 +177,7 @@ docker volume rm $id
 ```
 
 ## Reusing a precached image in dev to accelerate rebuilds
+
 Once you have build once your image, you have two options to reuse your image as a base to future builds, mainly to accelerate buildout successive runs.
 
 - Solution1: Use the current image as an incremental build: Put in your .env
@@ -192,6 +194,7 @@ Once you have build once your image, you have two options to reuse your image as
     ```
 
 ## Integrating an IDE
+
 - <strong>DO NOT START YET YOUR IDE</strong>
 - Add to your .env and re-run ``./control.sh build {{cookiecutter.app_type}}``
 
@@ -210,7 +213,6 @@ Once you have build once your image, you have two options to reuse your image as
     ./control.sh down {{cookiecutter.app_type}}
     ```
 
-
 ### Get the completion and the code resolving for bundled dependencies wich are inside the container
 
 - Whenever you rebuild the image, you need to refresh the files for your IDE to complete bundle dependencies
@@ -218,46 +220,12 @@ Once you have build once your image, you have two options to reuse your image as
     ```sh
     ./control.sh get_container_code
     ```
-### Using pycharm
-- Only now launch pycharm and configure a project on this working directory
-- Whenever you open your pycharm project:
-    - **remember to exclude the local source folders inside the local/code/venv**
-    - Add local/code/venv/lib/python*/site-packages to sources
-
-#### Make a break, insert a PDB and attach the session on Pycharm
-- The docker container will connect to your running pycharm process, using a network tcp connection, eg on port ``12345``.
-- ``12345`` can be changed but of course adapt the commands, this port must be reachable from within the container.
-- Linux only: This iptables rule can be more restrictive if you know and you want to but as the following it will allow unfiltered connections on port ``12345``.
-
-    ```sh
-    iptables -I INPUT  -p tcp -m tcp --dport 12345 -j ACCEPT
-    ```
-
-- Ensure you added ``WITH_PYCHARM`` in your ``.env`` and that ``PYCHARM_VERSION`` is tied to your PYCHARM installation and start from a fresh build if it was not (pip will mess to update it correctly, sorry).
-- Wherever you have the need to break, insert in your code the following snippet:
-
-    ```python
-    import pydevd_pycharm;pydevd_pycharm.settrace('host.docker.internal', port=12345, stdoutToServer=True, stderrToServer=True)
-    ```
-    - if ``host.docker.internal`` does not work for you, you can replace it by the local IP of your machine.
-- Remember this rules to insert your breakpoint:  If the file reside on your host, you can directly insert it, but on the other side, you will need to run a usershell session and debug from there.<br/>
-  Eg: if  you want to put a pdb in ``../venv/*/*/*/foo/__init__.py``
-    - <strong>DO NOT DO IT in ``local/code/venv/*/*/*/foo/__init__.py`` </strong>
-    - do:
-
-        ```sh
-        ./control.sh down {{cookiecutter.app_type}}
-        services_ports=1 ./control.sh usershell
-        apt install -y vim
-        vim ../venv/*/*/*/foo/__init__.py
-        # insert: import pydevd_pycharm;pydevd_pycharm.settrace('host.docker.internal', port=12345, stdoutToServer=True, stderrToServer=True)
-        ./manage.py runserver 0.0.0.0:8000
-        ```
-    - With pycharm and your configured debugging session, attach to the session
-
 
 ### Using VSCode
-- You must launch VSCode using ``./control.sh vscode`` as vscode needs to have the ``PYTHONPATH`` variable preset to make linters work
+
+FIXME: partie copiée des envs python, à revoir pour PHP...
+
+- You must launch VSCode using ``./control.sh vscode`` as vscode needs to have the ``PHPPATH`` variable preset to make linters work
 
     ```sh
     ./control.sh vscode
@@ -281,50 +249,8 @@ Additionnaly, adding this to ``.vscode/settings.json`` would help to give you a 
   ```
 
 #### Debugging with VSCode
-- [vendor documentation link](https://code.visualstudio.com/docs/python/debugging#_remote-debugging)
-- The VSCode process will connect to your running docker container, using a network tcp connection, eg on port ``5678``.
-- ``5678`` can be changed but of course adapt the commands, this port must be reachable from within the container and in the ``docker-compose-dev.yml`` file.
-- Ensure you added ``WITH_VSCODE`` in your ``.env`` and that ``VSCODE_VERSION`` is tied to your VSCODE installation and start from a fresh build if it was not (pip will mess to update it correctly, sorry).
-- Wherever you have the need to break, insert in your code the following snippet after imports (and certainly before wherever you want your import):
 
-    ```python
-    import ptvsd;ptvsd.enable_attach(address=('0.0.0.0', 5678), redirect_output=True);ptvsd.wait_for_attach()
-    ```
-- Remember this rules to insert your breakpoint:  If the file reside on your host, you can directly insert it, but on the other side, you will need to run a usershell session and debug from there.<br/>
-  Eg: if  you want to put a pdb in ``venv/*/*/*/foo/__init__.py``
-    - <strong>DO NOT DO IT in ``local/code/venv/*/*/*/foo/__init__.py`` </strong>
-    - do:
-
-        ```sh
-        ./control.sh down {{cookiecutter.app_type}}
-        services_ports=1 ./control.sh usershell
-        apt install -y vim
-        vim ../venv/*/*/*/foo/__init__.py
-        # insert: import ptvsd;ptvsd.enable_attach(address=('0.0.0.0', 5678), redirect_output=True);ptvsd.wait_for_attach()
-        ./manage.py runserver 0.0.0.0:8000
-        ```
-- toggle a breakpoint on the left side of your text editor on VSCode.
-- Switch to Debug View in VS Code, select the Python: Attach configuration, and select the settings (gear) icon to open launch.json to that configuration.<br/>
-  Duplicate the remote attach part and edit it as the following
-
-  ```json
-  {
-    "name": "Python Docker Attach",
-    "type": "python",
-    "request": "attach",
-    "pathMappings": [
-      {
-        "localRoot": "${workspaceFolder}",
-        "remoteRoot": "/code"
-      }
-    ],
-    "port": 5678,
-    "host": "localhost"
-  }
-  ```
-- With VSCode and your configured debugging session, attach to the session and it should work
-
-
+FIXME
 
 ## Doc for deployment on environments
 - [See here](./docs/README.md)
@@ -337,54 +263,12 @@ If you get troubles with the nginx docker env restarting all the time, try recre
 docker-compose -f docker-compose.yml -f docker-compose-dev.yml up -d --no-deps --force-recreate nginx backup
 ```
 
-If you get the same problem with the django docker env :
+If you get the same problem with the {{cookiecutter.app_type}} docker env :
 
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose-dev.yml stop django db
-docker volume rm oppm-postgresql # check with docker volume ls
+docker-compose -f docker-compose.yml -f docker-compose-dev.yml stop {{cookiecutter.app_type}} db
+docker volume rm ICIUnNom-postgresql # check with docker volume ls
 docker-compose -f docker-compose.yml -f docker-compose-dev.yml up -d db
-# wait fot postgis to be installed
-docker-compose -f docker-compose.yml -f docker-compose-dev.yml up django
+# wait fot database stuff to be installed
+docker-compose -f docker-compose.yml -f docker-compose-dev.yml up {{cookiecutter.app_type}}
 ```
-
-## Django settings managment
-- We embrace many concepts to manage django settings
-    - 12Factors: we try to make system environment the primary sources of settings
-    - For hosted environments, we use ByEnv pythonic settings that extends prod and
-      leverage complexity of combining settings by allowing to write logic to factorize the needed glue
-- The layout and variable precedence is as-follow:
-    - ``settings.base``
-    - ``environ (DJANGO__* variables)``: every environment var that has that prefix will be exposed
-      as a django setting (without the prefix).<br/>
-      For example ``DJANGO__SECRET_KEY`` ➡️ ``SECRET_KEY``
-    - ``settings.base.{dev,test,prod}``
-    - ``settings.base.instances{dev,qa,staging,prod,...}``
-- So where do you need to put your settings ?
-    - **Generic env values**:
-        - The default form needs to be, even with a null value (``[]``, ``0``, ``None``, ``{}``) in ``settings/base.py``.
-        - If you need a specific value for ``dev envs (localhost)`` or ``test (ci)``, you can put in in ``settings/{dev/test}.py``.
-        - If the production value is the same for every one, you can make it vary in ``settings/prod.py``.
-    - **Hosted env values**: If the value has to vary on a specific, hosted env. <br/>Say that you need ``'prod.foo.com'`` in prod but the default value
-      everywhere else, you need to put your settings in  ``settings/instances/prod.py``.
-    - If the value is exposed on the environment, whenever you add/edit it, you need to add it
-        - to ``docker.env`` & ``docker.env.dist`` in dev
-        - To **ansible setup**, [Read this section of the ansible readme](./docs/README.md#django-settings-setup).
-
-{% if cookiecutter.with_celery %}
-## Celery
-
-Celery can be used in foreground for easy developement<br/>
-Open two shell windows.<br/>
-
-In one of them, launch the beat
-```sh
-./control.sh celery_beat_fg
-```
-
-In the other, launch one worker
-```sh
-./control.sh celery_worker_fg
-```
-
-
-{% endif %}

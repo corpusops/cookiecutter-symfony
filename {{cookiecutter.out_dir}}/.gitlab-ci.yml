@@ -218,6 +218,14 @@ build_images: &build_images
 {{testscc}}  - *launch_test_stack
 {{testscc}}  - ./control.sh coverage
 
+{% set teste2ec = (not cookiecutter.test_e2e) and '#' or '' -%}
+{{teste2ec}}e2etests:
+{{teste2ec}}  <<: [ *tests_tpl ]
+{{teste2ec}}  only: [master, cypress, tags]
+{{teste2ec}}  script:
+{{teste2ec}}  - *launch_test_stack
+{{teste2ec}}  - ./control.sh cypress
+
 .release_tpl: &release_tpl
   stage: release
   tags: ["{{cookiecutter.runner_tag}}"]
@@ -315,6 +323,27 @@ teardown_env: &teardown_env
 {{devhostdeploycomment}}  environment:
 {{devhostdeploycomment}}    name: dev
 {{devhostdeploycomment}}    url: https://{{cookiecutter.dev_domain}}
+
+{% set cypresscomment = (not cookiecutter.test_cypress) and '#  ' or '' %}
+{{cypresscomment}}e2etests:
+{{cypresscomment}}  tags: ["{{cookiecutter.runner_tag}}"]
+{{cypresscomment}}  stage: deploy
+{{cypresscomment}}  when: manual
+{{cypresscomment}}  only: [master, cypress, tags]
+{{cypresscomment}}  variables:
+{{cypresscomment}}    PRELOAD_IMAGES: ""
+{{cypresscomment}}    CI: "true"
+{{cypresscomment}}    CONTROL_COMPOSE_FILES: docker-compose.yml
+{{cypresscomment}}  # no dependency on the test stack, we target a distant dev server
+{{cypresscomment}}  script:
+{{cypresscomment}}  - ./control.sh cypress_run https://{{cookiecutter.dev_domain}}
+{{cypresscomment}}  artifacts:
+{{cypresscomment}}    paths:
+{{cypresscomment}}    - ./e2e/cypress/screenshots
+{{cypresscomment}}    - ./e2e/cypress/videos
+{{cypresscomment}}    when: on_failure
+{{cypresscomment}}    # NEVER let this stuff fill the gitlab disks !
+{{cypresscomment}}    expire_in: 4 hours
 
 # manual rebuild on any branch except master or tags , no filter
 # and the according deploy job

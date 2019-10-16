@@ -7,5 +7,4 @@ services:
   cron: {<<: [ *{{cookiecutter.app_type}} ]}
   {%-endif%}
   {{cookiecutter.app_type}}: {<<: [ *{{cookiecutter.app_type}} ]}
-  {{cookiecutter.app_type}}-fg: {<<: [ *{{cookiecutter.app_type}} ]}
   {{cookiecutter.app_type}}-supervisor: {<<: [ *{{cookiecutter.app_type}} ]}

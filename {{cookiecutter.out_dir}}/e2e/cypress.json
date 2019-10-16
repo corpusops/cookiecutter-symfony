@@ -1,0 +1,4 @@
+{
+    "ignoreTestFiles": "**/examples/*.js",
+    "screenshotOnRunFailure": "true"
+}
