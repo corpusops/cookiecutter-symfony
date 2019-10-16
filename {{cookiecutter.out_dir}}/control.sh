@@ -400,7 +400,7 @@ do_cypress_open() {
 
 #  cypress_run_local: run cypresse e2e tests on local containers
 do_cypress_run_local() {
-    do_cypress_run http://{{cookiecutter.vm_domain}}:{{cookiecutter.vm_http_port}} "$@"
+    do_cypress_run http://{{cookiecutter.local_domain}}:{{cookiecutter.local_http_port}} "$@"
 }
 
 #  cypress_run_dev: run cypresse e2e tests on dev server
@@ -415,7 +415,7 @@ do_cypress_open_dev() {
 
 #  cypress_open_dev: open cypresse e2e gui on local containers
 do_cypress_open_local() {
-    do_cypress_open http://{{cookiecutter.vm_domain}}:{{cookiecutter.vm_http_port}} "$@"
+    do_cypress_open http://{{cookiecutter.local_domain}}:{{cookiecutter.local_http_port}} "$@"
 }
 
 #  tests [$tests]: run tests
