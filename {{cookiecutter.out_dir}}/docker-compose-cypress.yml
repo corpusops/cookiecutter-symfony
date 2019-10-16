@@ -1,0 +1,21 @@
+version: '3.7'
+services:
+  cypress:
+    env_file: [e2e/cypress.env]
+    environment:
+      CYPRESS_VIDEO: "true"
+    # image: "cypress/included:3.2.0"
+    image: cypress
+    build: ./e2e
+    #depends_on:
+    #  - {{cookiecutter.app_type}}
+    #  - nginx
+    #  - db
+  {%if cookiecutter.with_redis%}
+    #  - redis
+  {%endif%}
+    command: npx cypress run
+    volumes:
+      - ./e2e/cypress:/app/cypress
+      - ./e2e/cypress.json:/app/cypress.json
+    restart: "no"
