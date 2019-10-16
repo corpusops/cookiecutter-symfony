@@ -12,6 +12,8 @@
     "app_type": "symfony",
     "use_submodule_for_deploy_code": "y",
 
+    "local_domain": "{{cookiecutter.lname}}.local",
+    "local_http_port": "8008",
     "dev_domain": "dev-{{cookiecutter.lname}}.{{cookiecutter.tld_domain}}",
     "qa_domain": "qa-{{cookiecutter.lname}}.{{cookiecutter.tld_domain}}",
     "staging_domain": "staging-{{cookiecutter.lname}}.{{cookiecutter.tld_domain}}",
