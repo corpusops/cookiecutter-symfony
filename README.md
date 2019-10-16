@@ -32,6 +32,7 @@ virtualenv --python=python3 ~/tools/cookiecutter
         name=foobar \
         tld_domain=zorg.com \
         git_server=gitlab.makina-corpus.net \
+        docker_registry= registry.makina-corpus.net \
         git_ns=zorg \
         local_http_port=8009 \
         maintenance_no_503="y" \
@@ -59,6 +60,37 @@ virtualenv --python=python3 ~/tools/cookiecutter
     - ``haproxy=y``: generate haproxy related jobs
 
 - Push the generated files (here on `~/out_dir`) to your new project
+
+## Check the extra needed contents
+
+We provide a basic `app/composer.json` file. N**No doubt** that you may have to
+complement it.
+
+If you need access to one or more private git repositories for composer, you may
+also need to add some private ssh keys in `keys/` directory and build a
+`./sys/sbin/pre-composer.sh` script (it should look almost like the other
+sys/sbin/composer scripts, but at the end you can add some ssh-keysan and ssh
+specifc configurations like this:)
+
+    ```sh
+    (
+        # && $GOSU_CMD ssh-keyscan 37.58.212.66 >> /home/$APP_USER/.ssh/known_hosts \
+        $GOSU_CMD ssh-keyscan foo.example.com >> /home/$APP_USER/.ssh/known_hosts \
+        && chown $APP_USER:$APP_USER /home/$APP_USER/.ssh/known_hosts \
+        && $GOSU_CMD printf 'Host foo.example.com\n Preferredauthentications publickey\n  IdentityFile ...\n' > /home/$APP_USER/.ssh/config \
+        && chown $APP_USER:$APP_USER /home/$APP_USER/.ssh/config
+    )
+    ```
+
+Check also the symfony migrate commands or anything needed in the created database.
+
+## Init dev and and test locally
+
+```sh
+./control.sh init  # init conf files
+./control.sh build symfony
+./control.sh build  # will be faster as many images are based on symfony
+```
 
 ## Fill ansible inventory
 
@@ -112,14 +144,6 @@ copy/paste/adapt the content
 
 - Wash, rince, repeat for each needing-to-be-encrypted vault.
 - ⚠️Please note⚠️: that you will need to put the previously generated ssh deploy key in ``all/default.yml``
-
-## Init dev and and test locally
-
-```sh
-./control.sh init  # init conf files
-./control.sh build symfony
-./control.sh build  # will be faster as many images are based on symfony
-```
 
 ## Push to gitlab
 
