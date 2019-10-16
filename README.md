@@ -3,9 +3,9 @@
 Idea is to create it with a wonderful python tool called
 [cookiecutter](https://github.com/audreyr/cookiecutter)
 
-##  Install prerequisites
+## Install prerequisites
 
-```
+```sh
 if ! ( virtualenv 2>&1 >/dev/null );then echo "ERROR: install venv, on debian/ubuntu: apt install -y virtualenv,fi";fi
 virtualenv --python=python3 ~/tools/cookiecutter
 ~/tools/cookiecutter/bin/pip install cookiecutter
@@ -72,19 +72,22 @@ also need to add some private ssh keys in `keys/` directory and build a
 sys/sbin/composer scripts, but at the end you can add some ssh-keysan and ssh
 specifc configurations like this:)
 
-    ```sh
-    (
-        # && $GOSU_CMD ssh-keyscan 37.58.212.66 >> /home/$APP_USER/.ssh/known_hosts \
-        $GOSU_CMD ssh-keyscan foo.example.com >> /home/$APP_USER/.ssh/known_hosts \
-        && chown $APP_USER:$APP_USER /home/$APP_USER/.ssh/known_hosts \
-        && $GOSU_CMD printf 'Host foo.example.com\n Preferredauthentications publickey\n  IdentityFile ...\n' > /home/$APP_USER/.ssh/config \
-        && chown $APP_USER:$APP_USER /home/$APP_USER/.ssh/config
-    )
-    ```
+```sh
+(
+    # && $GOSU_CMD ssh-keyscan 37.58.212.66 >> /home/$APP_USER/.ssh/known_hosts \
+    $GOSU_CMD ssh-keyscan foo.example.com >> /home/$APP_USER/.ssh/known_hosts \
+    && chown $APP_USER:$APP_USER /home/$APP_USER/.ssh/known_hosts \
+    && $GOSU_CMD printf 'Host foo.example.com\n Preferredauthentications publickey\n  IdentityFile ...\n' > /home/$APP_USER/.ssh/config \
+    && chown $APP_USER:$APP_USER /home/$APP_USER/.ssh/config
+)
+```
 
 Check also the symfony migrate commands or anything needed in the created database.
 
 ## Init dev and and test locally
+
+Note that you can also read the generated README.md of the generated project for
+details on how to deploy the project locally (like docker dependencies, etc).
 
 ```sh
 ./control.sh init  # init conf files
@@ -113,7 +116,8 @@ export CORPUSOPS_VAULT_PASSWORD=SuperVerySecretPassword
 
 ### Move vault templates to their encrypted counterparts
 
-For each file which needs to be crypted
+For each file which needs to be encrypted
+
 ```sh
 # to find them
 find .ansible/inventory/group_vars/|grep encrypt
@@ -130,12 +134,14 @@ You need to
     ```sh
     $EDITOR .ansible/inventory/group_vars/dev/default.movemetoencryptedvault.yml
     ```
+
 2. In another window/shell, use Ansible vault to create/edit that file without the "encrypted" in the filename and
 copy/paste/adapt the content
 
     ```sh
     .ansible/scripts/edit_vault.sh .ansible/inventory/group_vars/dev/default.yml
     ```
+
 3. Delete the original file
 
     ```sh
@@ -168,7 +174,7 @@ copy/paste/adapt the content
 ## Update project
 
 You can regenerate at a later time the project
+
 ```sh
 local/regen.sh  # and verify new files and updates
 ```
-
