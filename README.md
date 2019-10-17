@@ -84,13 +84,6 @@ specifc configurations like this:)
 
 Check also the symfony migrate commands or anything needed in the created database.
 
-### Use a drupal 8 flavor
-
-Run the symfony project generation but add two arguments on the cookiecutter command line:
-
-- ``app_type=drupal`` : as this is used in most names (like project user, container names)
-- ``drupal8=y`` to add Drupal8 dedicated stuff
-
 ## Init dev and and test locally
 
 
@@ -108,7 +101,7 @@ If you launch a `up` action on dev local environement the application is not yet
 ```sh
 ./control.sh up
 ./control.sh userexec bin/composerinstall
-./control.sh console doctrine:migrations:migrate
+./control.sh console doctrine:migrations:migrate --allow-no-migration
 ```
 
 ## Fill ansible inventory

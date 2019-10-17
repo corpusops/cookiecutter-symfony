@@ -7,7 +7,7 @@
 ./control.sh userexec bin/composerinstall
 
 # Lancer les mises à jour du schéma des autres
-./control.sh console doctrine:migrations:migrate
+./control.sh console doctrine:migrations:migrate --allow-no-migration
 ```
 
 ## Lancer les tests unitaires

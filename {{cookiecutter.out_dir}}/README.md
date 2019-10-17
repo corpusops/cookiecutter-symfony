@@ -114,7 +114,7 @@ If you launch a `up` action on dev local environement the application is not yet
 ```sh
 ./control.sh up
 ./control.sh userexec bin/composerinstall
-./control.sh console doctrine:migrations:migrate
+./control.sh console doctrine:migrations:migrate --allow-no-migration
 ```
 
 ## Troubleshoot problems
@@ -182,7 +182,7 @@ services_ports=1 ./control.sh usershell
 ```sh
 ./control.sh console [options]
 # For instance:
-# ./control.sh console doctrine:migrations:migrate
+# ./control.sh console doctrine:migrations:migrate --allow-no-migration
 # ./control.sh console cache:clear
 # ...
 ```

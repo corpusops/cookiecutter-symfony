@@ -10,7 +10,6 @@
     "out_dir": ".",
     "tld_domain": "example.com",
     "app_type": "symfony",
-    "drupal8": "",
     "use_submodule_for_deploy_code": "y",
 
     "local_domain": "{{cookiecutter.lname}}.local",
