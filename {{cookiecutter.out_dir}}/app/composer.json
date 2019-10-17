@@ -13,6 +13,7 @@
         "doctrine/dbal": "^2.8",
         "doctrine/doctrine-bundle": "^1.9",
         "doctrine/doctrine-migrations-bundle": "^2.0",
+        "doctrine/orm": "^2.6",
         "egulias/email-validator": "^2.1",
         "moontoast/math": "^1.1",
         "neitanod/forceutf8": "^2.0",

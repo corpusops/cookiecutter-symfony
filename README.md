@@ -103,12 +103,12 @@ Run the symfony project generation but add two arguments on the cookiecutter com
 Note that you can also read the generated README.md of the generated project for
 details on how to deploy the project locally (like docker dependencies, debugging problems, etc).
 
-If you launch a `up` action on dev local environement the application is not yet installed. Shared directories with your local installation, contining things like the *vendors*, are empty, and the database may also be empty. A first test may needs commands like these ones :
+If you launch a `up` action on dev local environement the application is not yet installed. Shared directories with your local installation, containing things like the *vendors*, are empty, and the database may also be empty. A first test may needs commands like these ones :
 
 ```sh
 ./control.sh up
 ./control.sh userexec bin/composerinstall
-./control.sh console
+./control.sh console doctrine:migrations:migrate
 ```
 
 ## Fill ansible inventory

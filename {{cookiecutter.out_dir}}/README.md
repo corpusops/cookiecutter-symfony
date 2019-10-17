@@ -109,6 +109,14 @@ grep ABSOLUTE docker.env
 
 The project should be reached in http://foobar.local:8009 and foobar.local must resolve to 127.0.0.1.
 
+If you launch a `up` action on dev local environement the application is not yet installed. Shared directories with your local installation, containing things like the *vendors*, are empty, and the database may also be empty. A first test may needs commands like these ones :
+
+```sh
+./control.sh up
+./control.sh userexec bin/composerinstall
+./control.sh console
+```
+
 ## Troubleshoot problems
 
 You may need to check for problems by listing containers and checking logs with
@@ -122,10 +130,11 @@ foobar_{{cookiecutter.app_type}}_1_4a022a7c19bd              /bin/sh -c dockeriz
 docker logs -f foobar_{{cookiecutter.app_type}}_1_4a022a7c19bd
 ```
 
-In case of problems in the init.sh script of the {{cookiecutter.app_type}} container you can add some debug by adding a SDEBUG key in the env of the container. So, for example, edit your `docker.env` script and add:
+In case of problems in the init.sh script of the {{cookiecutter.app_type}} container you can add some debug by adding a SDEBUG key in the env of the container, you can have even more details by adding an empty NO_STARTUP_LOG env. So, for example, edit your `docker.env` script and add:
 
 ```sh
 SDEBUG=1
+NO_STARTUP_LOG=
 ```
 
 ## Start a shell inside the {{cookiecutter.app_type}} container
