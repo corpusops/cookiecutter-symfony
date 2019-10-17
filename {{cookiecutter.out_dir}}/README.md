@@ -114,7 +114,7 @@ If you launch a `up` action on dev local environement the application is not yet
 ```sh
 ./control.sh up
 ./control.sh userexec bin/composerinstall
-./control.sh console
+./control.sh console doctrine:migrations:migrate
 ```
 
 ## Troubleshoot problems
