@@ -1,8 +1,16 @@
 {
+
     "name": "{{cookiecutter.git_ns}}/{{cookiecutter.git_project}}",
     "description": "{{ cookiecutter.name }}",
     "type": "project",
     "license": "proprietary",
+    "authors": [
+        {
+            "name": "fixme",
+            "email": "fixme@example.com",
+            "role": "Developer"
+        }
+    ],
     "require": {
         "php": "^{{ cookiecutter.php_ver }}",
         "ext-ctype": "*",
