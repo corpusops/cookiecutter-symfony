@@ -109,6 +109,25 @@ grep ABSOLUTE docker.env
 
 The project should be reached in http://foobar.local:8009 and foobar.local must resolve to 127.0.0.1.
 
+## Troubleshoot problems
+
+You may need to check for problems by listing containers and checking logs with
+
+```sh
+./control.sh ps
+# here finding a line like this one:
+foobar_{{cookiecutter.app_type}}_1_4a022a7c19bd              /bin/sh -c dockerize -wait ...   Exit 1
+# note the exit 1 is not a good news...
+# asking for logs
+docker logs -f foobar_{{cookiecutter.app_type}}_1_4a022a7c19bd
+```
+
+In case of problems in the init.sh script of the {{cookiecutter.app_type}} container you can add some debug by adding a SDEBUG key in the env of the container. So, for example, edit your `docker.env` script and add:
+
+```sh
+SDEBUG=1
+```
+
 ## Start a shell inside the {{cookiecutter.app_type}} container
 
 - for user shell
