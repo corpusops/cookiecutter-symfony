@@ -312,14 +312,14 @@ teardown_env: &teardown_env
   script:
   - .ansible/scripts/call_ansible.sh -vv -l $A_ENV_NAME "${DEPLOY_PLAYBOOK}"
 
-{{devhostdeploycomment}}deploy_dev: &deploy_dev
+{{devhostdeploycomment}}.deploy_dev: &deploy_dev
 {{devhostdeploycomment}}  <<: [ *deploy_tpl ]
 {{devhostdeploycomment}}  when: on_success
 {{devhostdeploycomment}}  variables: &deploy_dev_vars
 {{devhostdeploycomment}}    <<: [ *deploy_vars_tpl ]
 {{devhostdeploycomment}}    A_ENV_NAME: dev
 {{devhostdeploycomment}}  only: [master, tags]
-{{devhostdeploycomment}}  script: [master, tags]
+{{devhostdeploycomment}}  script:
 {{devhostdeploycomment}}  - .ansible/scripts/call_ansible.sh -vv -l $A_ENV_NAME "${DEPLOY_PLAYBOOK}"
 {{devhostdeploycomment}}  environment:
 {{devhostdeploycomment}}    name: dev
