@@ -413,7 +413,7 @@ do_cypress_open_dev() {
     do_cypress_open  https://{{cookiecutter.dev_domain}} "$@"
 }
 
-#  cypress_open_dev: open cypresse e2e gui on local containers
+#  cypress_open_local: open cypresse e2e gui on local containers
 do_cypress_open_local() {
     do_cypress_open http://{{cookiecutter.local_domain}}:{{cookiecutter.local_http_port}} "$@"
 }

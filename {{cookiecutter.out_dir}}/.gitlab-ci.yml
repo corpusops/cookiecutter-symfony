@@ -219,12 +219,13 @@ build_images: &build_images
 {{testscc}}  - ./control.sh coverage
 
 {% set teste2ec = (not cookiecutter.test_e2e) and '#' or '' -%}
-{{teste2ec}}e2etests:
-{{teste2ec}}  <<: [ *tests_tpl ]
-{{teste2ec}}  only: [master, cypress, tags]
-{{teste2ec}}  script:
-{{teste2ec}}  - *launch_test_stack
-{{teste2ec}}  - ./control.sh cypress
+{{teste2ec}}# currently not functional, only on post dev-deploy mode, see other
+{{teste2ec}}#e2etests:
+{{teste2ec}}#  <<: [ *tests_tpl ]
+{{teste2ec}}#  only: [master, cypress, tags]
+{{teste2ec}}#  script:
+{{teste2ec}}#  - *launch_test_stack
+{{teste2ec}}#  - ./control.sh cypress
 
 .release_tpl: &release_tpl
   stage: release
@@ -407,6 +408,8 @@ deploy_staging: &deploy_staging
     url: https://{{cookiecutter.staging_domain}}
 
 {%endif-%}
+
+{% if cookiecutter.prod_host -%}
 deploy_prod: &deploy_prod
   <<: [ *deploy_tpl ]
   only: [tags, master]
@@ -416,8 +419,9 @@ deploy_prod: &deploy_prod
   environment:
     name: prod
     url: https://{{cookiecutter.prod_domain}}
-{%- if cookiecutter.haproxy %}
+{% endif -%}
 
+{%- if cookiecutter.haproxy %}
 .reconfigure_haproxy_and_fw: &reconfigure_haproxy_and_firewall_tpl
   <<: [ *manual_job_tpl ]
   when: manual
@@ -448,5 +452,8 @@ manual_deploy_staging:
   <<: [ *manual_job_tpl, *deploy_staging ]
 
 {% endif -%}
+
+{% if cookiecutter.prod_host -%}
 manual_deploy_prod:
   <<: [ *manual_job_tpl, *deploy_prod ]
+{% endif -%}
