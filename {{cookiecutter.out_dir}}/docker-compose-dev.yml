@@ -62,7 +62,7 @@ services:
     build:
       context: "."
       args:
-        PHP_VER: "${SYMFONY_PHP_VER:-7.2}"
+        PHP_VER: "${SYMFONY_PHP_VER:-{{cookiecutter.php_ver}}}"
     <<: [ *bypass ]
     <<: [ *{{cookiecutter.app_type}} ]
   {% endif %}
@@ -70,7 +70,7 @@ services:
     build:
       context: "."
       args:
-        PHP_VER: "${SYMFONY_PHP_VER:-7.2}"
+        PHP_VER: "${SYMFONY_PHP_VER:-{{cookiecutter.php_ver}}}"
     <<: [ *{{cookiecutter.app_type}} ]
     environment:
       <<: [ *{{cookiecutter.app_type}}_env ]
@@ -82,7 +82,7 @@ services:
     build:
       context: "."
       args:
-        PHP_VER: "${SYMFONY_PHP_VER:-7.2}"
+        PHP_VER: "${SYMFONY_PHP_VER:-{{cookiecutter.php_ver}}}"
     <<: [ *{{cookiecutter.app_type}} ]
     environment:
       <<: [ *{{cookiecutter.app_type}}_env ]
