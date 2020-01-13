@@ -405,7 +405,7 @@ do_cypress_run_local() {
 
 #  cypress_run_dev: run cypresse e2e tests on dev server
 do_cypress_run_dev() {
-    do_cypress https://{{cookiecutter.dev_domain}} "$@"
+    do_cypress_run https://{{cookiecutter.dev_domain}} "$@"
 }
 
 #  cypress_open_dev: open cypresse e2e gui on dev server
