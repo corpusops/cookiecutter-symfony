@@ -1,6 +1,7 @@
 {
     "name": "myapp",
     "php_ver": "7.2",
+    "symfony_ver": "4.4",
     "base_os": "centos",
     "nginx_in_dev": "y",
     "ssl_in_dev": "",

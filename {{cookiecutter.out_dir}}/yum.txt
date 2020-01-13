@@ -58,6 +58,7 @@ php-pecl-zip
 php-pgsql
 php-process
 php-soap
+php-sodium
 # php-suhosin
 # php-symfony-common
 # php-symfony-yaml

@@ -26,27 +26,27 @@
         "moontoast/math": "^1.1",
         "neitanod/forceutf8": "^2.0",
         "phpseclib/phpseclib": "^2.0",
-        "symfony/asset": "4.2.*",
-        "symfony/console": "4.2.*",
+        "symfony/asset": "{{cookiecutter.symfony_ver}}.*",
+        "symfony/console": "{{cookiecutter.symfony_ver}}.*",
         "symfony/dotenv": "*",
         "symfony/flex": "^1.1",
-        "symfony/form": "4.2.*",
-        "symfony/framework-bundle": "4.2.*",
-        "symfony/messenger": "4.2.*",
+        "symfony/form": "{{cookiecutter.symfony_ver}}.*",
+        "symfony/framework-bundle": "{{cookiecutter.symfony_ver}}.*",
+        "symfony/messenger": "{{cookiecutter.symfony_ver}}.*",
         "symfony/polyfill-apcu": "^1.11",
-        "symfony/process": "4.2.*",
-        "symfony/security-bundle": "4.2.*",
+        "symfony/process": "{{cookiecutter.symfony_ver}}.*",
+        "symfony/security-bundle": "{{cookiecutter.symfony_ver}}.*",
         "symfony/serializer-pack": "^1.0",
-        "symfony/twig-bundle": "4.2.*",
-        "symfony/validator": "4.2.*",
+        "symfony/twig-bundle": "{{cookiecutter.symfony_ver}}.*",
+        "symfony/validator": "{{cookiecutter.symfony_ver}}.*",
         "symfony/webpack-encore-bundle": "^1.0",
-        "symfony/yaml": "4.2.*"
+        "symfony/yaml": "{{cookiecutter.symfony_ver}}.*"
     },
     "repositories": [
     ],
     "require-dev": {
-        "symfony/browser-kit": "4.2.*",
-        "symfony/phpunit-bridge": "4.2.*",
+        "symfony/browser-kit": "{{cookiecutter.symfony_ver}}.*",
+        "symfony/phpunit-bridge": "{{cookiecutter.symfony_ver}}.*",
         "symfony/profiler-pack": "^1.0"
     },
     "config": {
@@ -96,7 +96,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "4.2.*"
+            "require": "{{cookiecutter.symfony_ver}}.*"
         }
     }
 }

@@ -49,6 +49,7 @@ virtualenv --python=python3 ~/tools/cookiecutter
       project for a standalone deployment (no common deploy)
     - ``local_http_port=NNNN``: local port use by devs to access the project after /etc/hosts edition to map 127.0.0.1 to the ``local_domain`` variable (something like http://project_name.local:local_http_port)
     - ``php_ver=X.Y``: php version to use
+    - ``Symfony_ver=X.Y``: Symfony version to use
     - ``remove_cron=y``: will remove cron image and related configuration
     - ``enable_cron=``: will soft disable (comment crontab) without removing cron.
     - ``(qa|staging)_host=``: will disable generation for this env
