@@ -70,7 +70,7 @@ complement it.
 If you need access to one or more private git repositories for composer, you may
 also need to add some private ssh keys in `keys/` directory and build a
 `./sys/sbin/pre-composer.sh` script (it should look almost like the other
-sys/sbin/composer scripts, but at the end you can add some ssh-keysan and ssh
+sys/sbin/composer scripts, but at the end you can add some ssh-keyscan and ssh
 specifc configurations like this:)
 
 ```sh

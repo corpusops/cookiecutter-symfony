@@ -52,6 +52,7 @@
     "config": {
         "platform": {
             "php": "{{cookiecutter.php_ver}}"
+        },
         "preferred-install": {
             "*": "dist"
         },
