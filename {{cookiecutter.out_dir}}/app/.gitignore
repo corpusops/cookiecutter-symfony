@@ -6,16 +6,9 @@ coverage
 # Test environment files upload directory
 public/test
 
-# Public files upload directory
-public/files
-
-# Private files
-private
-
 ###> symfony/framework-bundle ###
 /.env
 /public/bundles/
-/var/
 /vendor/
 ###< symfony/framework-bundle ###
 
