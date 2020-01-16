@@ -5,8 +5,9 @@ All following commands must be run only once at project installation.
 ## First clone
 
 ```sh
-git clone --recursive {{cookiecutter.git_project_url}}
-{%if cookiecutter.use_submodule_for_deploy_code-%}git submodule init # only the fist time
+git clone --recursive {{cookiecutter.git_project_url}} # choose between ssh and http
+{%if cookiecutter.use_submodule_for_deploy_code-%}cd {{cookiecutter.git_project}}
+git submodule init # only the fist time
 git submodule update --recursive{%endif%}
 ```
 
