@@ -15,10 +15,12 @@ services:
     restart: unless-stopped
     <<: [ *{{cookiecutter.app_type}} ]
     ports:
-    - "9000:9000" 
+    - "9000:9000"
+  {%- if cookiecutter.with_supervisor %}
   {{cookiecutter.app_type}}-supervisor:
     restart: unless-stopped
     <<: [ *{{cookiecutter.app_type}} ]
+  {%-endif%}
   {% if not cookiecutter.remove_cron %}
   cron:
     restart: unless-stopped

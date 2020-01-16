@@ -1,8 +1,13 @@
 <?php
 
 use App\Kernel;
+{%- if cookiecutter.symfony_ver in ["4.0", "4.1", "4.2","4.3"]  %}
 use Symfony\Component\Debug\Debug;
+{%- endif %}
 use Symfony\Component\Dotenv\Dotenv;
+{%- if not cookiecutter.symfony_ver in ["4.0", "4.1", "4.2","4.3"]  %}
+use Symfony\Component\ErrorHandler\Debug;
+{%- endif %}
 use Symfony\Component\HttpFoundation\Request;
 
 require dirname(__DIR__).'/vendor/autoload.php';

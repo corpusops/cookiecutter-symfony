@@ -63,6 +63,7 @@
     "deploy_project_dir": "local/{{cookiecutter.deploy_project_url.split('/')[-1].replace('.git', '')}}",
     "with_sentry": "",
     "with_redis": "",
+    "with_supervisor": "",
     "docker_registry": "registry.{{cookiecutter.infra_domain}}",
     "registry_is_gitlab_registry": "{% if 'gitlab.com' in cookiecutter.docker_registry%}y{%endif%}",
     "simple_docker_image": "{{cookiecutter.git_ns.split('/')[0].lower()}}/{{cookiecutter.lname}}",

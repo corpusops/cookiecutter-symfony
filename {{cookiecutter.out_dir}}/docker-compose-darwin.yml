@@ -18,8 +18,10 @@ services:
     <<: [ *bypass, *{{cookiecutter.app_type}} ]
   {{cookiecutter.app_type}}:
     <<: [ *{{cookiecutter.app_type}} ]
+  {%- if cookiecutter.with_supervisor %}
   {{cookiecutter.app_type}}-supervisor:
     <<: [ *{{cookiecutter.app_type}} ]
+  {%-endif%}
   nginx:
     volumes:
       - ./app:/code/app.host

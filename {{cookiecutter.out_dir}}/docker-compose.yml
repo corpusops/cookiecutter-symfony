@@ -105,6 +105,7 @@ services:
     - SUPERVISORD_CONFIGS=/etc/supervisor.d/cron /etc/supervisor.d/nginx /etc/supervisor.d/rsyslog
   {{cookiecutter.app_type}}:
     <<: [ *{{cookiecutter.app_type}} ]
+  {%- if cookiecutter.with_supervisor %}
   {{cookiecutter.app_type}}-supervisor:
     <<: [ *{{cookiecutter.app_type}} ]
     environment:
@@ -115,6 +116,7 @@ services:
       NO_COLLECT_STATIC: 1
     depends_on:
     - {{cookiecutter.app_type}}
+  {%-endif%}
   {%- if not cookiecutter.remove_cron %}
   cron:
     <<: [ *{{cookiecutter.app_type}} ]
