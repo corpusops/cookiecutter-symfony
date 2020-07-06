@@ -36,6 +36,7 @@ x-images:
       # remount public/private (named volumes on prod, local remount on dev)
       # on /code/app/public/files and /code/app/private
       - ./app/public/files:/code/app/public/files
+      - ./app/public/bundles:/code/app/public/bundles
       - ./app/private:/code/app/private
       - ./app/var/cache:/code/app/var/cache
       # Pour la documentation, parce qu'une commande symfony peut générer du rst

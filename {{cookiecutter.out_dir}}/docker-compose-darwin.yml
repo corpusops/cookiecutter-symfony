@@ -10,6 +10,7 @@ x-images:
       # remount a volume from the hyve VM for better IOs
       - osx-app:/code/app
       - ./app/public/files:/code/app/public/files
+      - ./app/public/bundles:/code/app/public/bundles
       - ./app/private:/code/app/private
       - osx-var:/code/app/var
       - osx-cache:/code/app/var/cache
@@ -29,6 +30,7 @@ services:
       # remount a volume from the hyve VM for better IOs
       - osx-app:/code/app
       - ./app/public/files:/code/app/public/files
+      - ./app/public/bundles:/code/app/public/bundles
       - ./app/private:/code/app/private
       - osx-var:/code/app/var
       - osx-cache:/code/app/var/cache

@@ -29,6 +29,7 @@ x-images:
       # - ./sys/crontab:/etc/cron.d/symfony # nope -> chown root done on that file, prefer a COPY, or a template
       - logs:/logs/
       - publiccontrib:/code/app/public/files
+      - publicbundles:/code/app/public/bundles
       - private:/code/app/private
       - cache:/code/app/var/cache
       # volume that we need to feed for nginx docker
@@ -82,6 +83,7 @@ services:
       - ./sys/etc/nginx/vhost.conf.template:/etc/nginx/conf.d/default.conf.template
       - webroot:/code/app/public
       - publiccontrib:/code/app/public/files:ro
+      - publicbundles:/code/app/public/bundles:ro
       - private:/code/app/private:ro
       - logs:/logs/
       - nginx-certs:/certs
@@ -164,6 +166,7 @@ volumes:
   nginx-certs:
   webroot:
   publiccontrib:
+  publicbundles:
   private:
   cache:
   logs:
