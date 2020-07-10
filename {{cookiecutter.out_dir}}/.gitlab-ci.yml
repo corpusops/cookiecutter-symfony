@@ -325,6 +325,9 @@ teardown_env: &teardown_env
 {{devhostdeploycomment}}    name: dev
 {{devhostdeploycomment}}    url: https://{{cookiecutter.dev_domain}}
 
+{{devhostdeploycomment}}deploy_dev:
+{{devhostdeploycomment}}  <<: [ *deploy_dev ]
+
 {% set cypresscomment = (not cookiecutter.test_cypress) and '#  ' or '' %}
 {{cypresscomment}}e2etests:
 {{cypresscomment}}  tags: ["{{cookiecutter.runner_tag}}"]
