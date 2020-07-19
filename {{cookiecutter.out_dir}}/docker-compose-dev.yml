@@ -35,6 +35,12 @@ x-images:
     - ./app/public/bundles:/code/app/public/bundles
     - ./app/public/files:/code/app/public/files
     - ./docs:/code/docs
+    # Workaround for volume shadow bug in compose:
+    #   be sure to remount in dev all volumes declared in docker-compose.yml:app
+    - ./app/var:/code/app/var
+    - ./app/private:/code/app/private
+    - ./app/cache:/code/app/var/cache
+    # /endbug
 services:
   db:
     ports:

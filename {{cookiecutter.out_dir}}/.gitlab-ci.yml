@@ -724,6 +724,11 @@ teardown_workspace: &teardown_workspace
 manual_teardown_workspace:
   <<: [ *manual_job, *teardown_workspace ]
 
+
+.delivery_playbook: &delivery_playbook
+  variables: &delivery_playbook_variables
+    DEPLOY_PLAYBOOK: .ansible/playbooks/delivery.yml
+
 .deploy: &deploy
   <<: [ *ci_runner ]
   dependencies: []
@@ -751,8 +756,8 @@ manual_teardown_workspace:
   - &deploy_setup set -e;vv(){ echo "$@">&2;"$@"; };
     vv .ansible/scripts/download_corpusops.sh;
     vv .ansible/scripts/setup_ansible.sh;
-  - &deploy_key_setup set -e;vv(){ echo "$@">&2;"$@"; };
-    vv .ansible/scripts/call_ansible.sh -vv .ansible/playbooks/deploy_key_setup.yml
+  - &deploy_key_setup set -e;vv(){ echo "$@">&2;"$@"; };vv
+    .ansible/scripts/call_ansible.sh -vv .ansible/playbooks/deploy_key_setup.yml
   script:
   - &deploy_cmd |-
       # do not remove yaml inline (older gitlab parse problem)
@@ -764,11 +769,9 @@ manual_teardown_workspace:
 .deploy_{{i}}: &deploy_{{i}}
   <<: [ *deploy_{{i}}_rules, *deploy ]
   variables: &deploy_{{i}}_vars
-    <<: [ *deploy_vars ]
+    <<: [ {%- if i in ['prod'] %}*delivery_playbook_variables, {%- endif %}*deploy_vars ]
     A_ENV_NAME: {{i}}
-{%- if i in ['prod'] %}
-    DEPLOY_PLAYBOOK: .ansible/playbooks/delivery.yml
-{%- endif %}
+
 {%- if i in ['dev'] %}
   when: "on_success"
 {%- endif %}
@@ -870,7 +873,7 @@ promote_single_env: &promote_single_env
 manual_promote_and_deploy_{{i}}: &promote_and_deploy_{{i}}
   <<: [ *promote_and_deploy, *promote, *manual_deploy_{{i}} ]
   variables: &promote_and_deploy_{{i}}_vars
-    <<: [ *promote_and_deploy_vars, *deploy_{{i}}_vars ]
+    <<: [ {%- if i in ['prod'] %}*delivery_playbook_variables, {%- endif %}*promote_and_deploy_vars, *deploy_{{i}}_vars ]
     TO_PROMOTE: "{{i}}"
 promote_and_deploy_{{i}}: { <<: [ *promote_and_deploy_{{i}} ], stage: post_release }
 {% endfor %}

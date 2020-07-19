@@ -35,7 +35,7 @@
     "staging_host": "{{cookiecutter.staging_domain.replace('-{0}.'.format(cookiecutter.lname), '-docker-{0}.'.format(cookiecutter.lname))}}",
     "qa_host": "{{cookiecutter.qa_domain.replace('-{0}.'.format(cookiecutter.lname), '-docker-{0}.'.format(cookiecutter.lname))}}",
     "dev_host": "{{cookiecutter.dev_domain.replace('-{0}.'.format(cookiecutter.lname), '-docker-{0}.'.format(cookiecutter.lname))}}",
-    "preprod_host": "{{cookiecutter.preprod_domain.replace('-{0}.'.format(cookiecutter.lname), '-docker-{0}.'.format(cookiecutter.lname))}}",
+    "preprod_host": "preprod-{{cookiecutter.preprod_domain.replace('-{0}.'.format(cookiecutter.lname), '-docker-{0}.'.format(cookiecutter.lname))}}",
     "prod_host": "{{cookiecutter.prod_domain.replace('-{0}.'.format(cookiecutter.lname), '-docker-{0}.'.format(cookiecutter.lname))}}",
     "staging_port": "22",
     "remove_fg": "1",
