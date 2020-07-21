@@ -253,7 +253,7 @@ before_script: &top_before_script
   rp="$(pwd)/local/out/docker";
   if ( docker --version >/dev/null 2>&1) && [ "x${UPGRADE_DOCKER}" = "x1" ];then
     docker run --rm -v "${rp}:/out" --entrypoint sh ${DOCKERDIND_IMAGE} -ec 'cp -v /usr/local/bin/docker* /out';
-    cp -fv "${rp}/docker"* /usr/local/bin;docker --version || /bin/true;
+    cp -fv $(ls -1 "${rp}/docker"* | grep -v docker-compose) /usr/local/bin;docker --version || /bin/true;
   fi
 - &linkapt set -e;if [ -e /var/cache/apt ];then rm -rf /var/cache/apt/archives;ln -s ${PROJECT_CACHE_ROOT}/apt /var/cache/apt/archives;fi
 - &settz ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo ${TZ} > /etc/timezone
@@ -1010,13 +1010,12 @@ promote_all_envs: &promote_all_envs
   - |-
     set -e
     t="$(eval echo "${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${FROM_PROMOTE}")"
-    vt="$( echo "${DOCKER_REGISTRY}/${DOCKER_IMAGE_VARNISH}:${FROM_PROMOTE:-latest}")"
     tags=""
-    for flav in "" "-dev";do vv docker pull ${t}${flav};docker pull ${vt}${flav};done
+    for flav in "" "-dev";do vv docker pull ${t}${flav};done
     for i in $(uniquify $(eval echo ${TO_PROMOTE}) );do
-      adddockertag ${t} ${i} ${vt}
+      adddockertag ${t} ${i}
       if [ "x${i}" = "x${MAIN_BRANCH}" ];then
-        adddockertag ${t} latest ${vt}
+        adddockertag ${t} latest
       fi
     done
     for i in $tags;do vv retry_cmd docker push ${i};done
@@ -1072,4 +1071,3 @@ promote_single_env: &promote_single_env
 {{teleportcomment}}    orig: prod
 {{teleportcomment}}    dest: {{i}}
 {% endif %}{%endfor%}
- 
