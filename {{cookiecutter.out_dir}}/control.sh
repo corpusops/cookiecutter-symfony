@@ -27,13 +27,13 @@ APP_USER=${APP_USER:-${APP}}
 APP_CONTAINER=${APP_CONTAINER:-${APP}}
 APP_CONTAINERs="^($APP_CONTAINER|celery)"
 DEBUG=${DEBUG-}
+FORCE_OXC_SYNC=${FORCE_OXC_SYNC-}
 NO_BACKGROUND=${NO_BACKGROUND-}
 BUILD_PARALLEL=${BUILD_PARALLEL-1}
 BUILD_CONTAINERS="$APP_CONTAINER {%-if not cookiecutter.remove_fg%} $APP_CONTAINER-fg{%endif%} {%-if not cookiecutter.remove_cron%} cron{%endif%}"
 EDITOR=${EDITOR:-vim}
 DIST_FILES_FOLDERS=". src/*/settings"
 DEFAULT_CONTROL_COMPOSE_FILES="docker-compose.yml docker-compose-dev.yml"
-FORCE_OXC_SYNC=${FORCE_OXC_SYNC-}
 if [[ -n "${FORCE_OXC_SYNC}" ]];then
     DEFAULT_CONTROL_COMPOSE_FILES="$DEFAULT_CONTROL_COMPOSE_FILES docker-compose-darwin.yml"
 fi
