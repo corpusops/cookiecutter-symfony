@@ -33,7 +33,8 @@ BUILD_CONTAINERS="$APP_CONTAINER {%-if not cookiecutter.remove_fg%} $APP_CONTAIN
 EDITOR=${EDITOR:-vim}
 DIST_FILES_FOLDERS=". src/*/settings"
 DEFAULT_CONTROL_COMPOSE_FILES="docker-compose.yml docker-compose-dev.yml"
-if [ "$(uname)" = "Darwin" ];then
+FORCE_OXC_SYNC=${FORCE_OXC_SYNC-}
+if [[ -n "${FORCE_OXC_SYNC}" ]];then
     DEFAULT_CONTROL_COMPOSE_FILES="$DEFAULT_CONTROL_COMPOSE_FILES docker-compose-darwin.yml"
 fi
 CONTROL_COMPOSE_FILES="${CONTROL_COMPOSE_FILES:-$DEFAULT_CONTROL_COMPOSE_FILES}"
