@@ -82,7 +82,7 @@ server {
     server_name {{'{{'}} $v.server_name }}{{'{{'}}if $v.server_aliases }}{{'{{'}}$v.server_aliases}}{{'{{'}}end}};
     server_name_in_redirect {{'{{'}} $v.server_name_in_redirect }};
 
-    error_log  /logs/symfony-error.log  debug;
+    error_log  /logs/symfony-error.log  info;
     access_log /logs/symfony-access.log custom_combined if=$method_loggable;
 
     {{'{{'}} define "vhost" }}
