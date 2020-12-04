@@ -7,6 +7,7 @@ x-images:
       args:
         PHP_VER: "${SYMFONY_PHP_VER:-{{cookiecutter.php_ver}}}"
         PHP_VER_NO_DOT: "${SYMFONY_PHP_VER_NO_DOT:-{{cookiecutter.php_ver.replace('.', '') }}}"
+        COMPOSER_VERSION: "${COMPOSER_VERSION:-{{cookiecutter.composer_ver}}}"
 services:
   {%- if not cookiecutter.remove_cron %}
   cron: {<<: [ *{{cookiecutter.app_type}} ]}
