@@ -60,18 +60,10 @@ services:
   backup: {<<: [ *bypass ]}
   {%- if not cookiecutter.remove_cron %}
   cron:
-    build:
-      context: "."
-      args:
-        PHP_VER: "${SYMFONY_PHP_VER:-{{cookiecutter.php_ver}}}"
     <<: [ *bypass ]
     <<: [ *{{cookiecutter.app_type}} ]
   {% endif %}
   {{cookiecutter.app_type}}:
-    build:
-      context: "."
-      args:
-        PHP_VER: "${SYMFONY_PHP_VER:-{{cookiecutter.php_ver}}}"
     <<: [ *{{cookiecutter.app_type}} ]
     environment:
       <<: [ *{{cookiecutter.app_type}}_env ]
@@ -81,10 +73,6 @@ services:
       PHP_XDEBUG_PORT: 9000
   {%- if cookiecutter.with_supervisor %}
   {{cookiecutter.app_type}}-supervisor:
-    build:
-      context: "."
-      args:
-        PHP_VER: "${SYMFONY_PHP_VER:-{{cookiecutter.php_ver}}}"
     <<: [ *{{cookiecutter.app_type}} ]
     environment:
       <<: [ *{{cookiecutter.app_type}}_env ]
