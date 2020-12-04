@@ -13,7 +13,7 @@ x-images:
       NO_CACHE_CLEAR: "1"
       NO_COMPOSER: "1"
     volumes: &{{cookiecutter.app_type}}_volumes
-      #- ./local/symfony-deploy-common/sys/sudoer:/etc/sudoers.d/$APP_TYPE
+      #- ./local/symfony-deploy-common/sys/sudoer:/etc/sudoers.d/${APP_TYPE:-symfony}
       - ./sys/sbin:/code/init/sbin/
       - ./sys/sbin:/code/sys/sbin/
       - ./sys/sbin:/code/sbin/
