@@ -133,7 +133,7 @@ do_dcompose() {
 
 #  psql $@: wrapper to psql interpreter
 do_psql() {
-    DEBUG=1 dvv $DC run --rm db \
+    DEBUG=1 dvv $DC exec db \
         /bin/sh -ec "
 psql postgres://\$POSTGRES_USER:\$PGPASSWD@\$POSTGRES_HOST:\$POSTGRES_PORT/\$POSTGRES_DB ${@@Q}
 "
