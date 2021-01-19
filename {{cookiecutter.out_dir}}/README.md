@@ -14,7 +14,7 @@ git submodule update --recursive{%endif%}
 ## Before using any ansible command: a note on sudo
 
 If your user is ``sudoer`` but is asking for you to input a password before elavating privileges,
-you will need to add ``--ask-sudo-pass`` and maybe ``--become`` to any of the following ``ansible alike`` commands.
+You will need to add ``--ask-become-pass`` (or in earlier ansible versions: ``--ask-sudo-pass``) and maybe ``--become`` to any of the following ``ansible alike`` commands.
 
 ## Install docker and docker compose
 
