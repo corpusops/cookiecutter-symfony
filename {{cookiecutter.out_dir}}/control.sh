@@ -133,15 +133,10 @@ do_dcompose() {
 
 #  psql $@: wrapper to psql interpreter
 do_psql() {
-    cmd="psql postgres://\$POSTGRES_USER:\$PGPASSWD@\$POSTGRES_HOST:\$POSTGRES_PORT/\$POSTGRES_DB"
-    if ( echo $@ |egrep -q "'" );then
-        cmd="$cmd \"$@\""
-    elif ( echo $@ |egrep -q '"' );then
-        cmd="$cmd '$@'"
-    elif [[ -n "$@" ]];then
-        cmd="$cmd $@"
-    fi
-    DEBUG=1 dvv $DC exec db sh -ec "$cmd"
+    cmd='$DC exec db bash -ec "PGUSER=\$POSTGRES_USER PGPASSWORD=\$PGPASSWD PGHOST=\$POSTGRES_HOST PGPORT=\$POSTGRES_PORT PGDATABASE=\$POSTGRES_DB psql'
+    cli=( "$@" )
+    for var in "${cli[@]}";do cmd="$cmd $(printf %q "$var")";done
+    eval $cmd'"'
 }
 
 #  ----
