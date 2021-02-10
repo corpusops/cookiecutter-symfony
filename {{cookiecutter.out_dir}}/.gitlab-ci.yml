@@ -58,6 +58,12 @@ variables:
   # {{cookiecutter.lname}} settings
   SYMFONY_DEPLOY_VERSION: origin/stable
 {%endif%}
+  # debug
+  NO_SILENT: "1"
+  NO_STARTUP_LOGS: ""
+  SDEBUG: "$NO_SILENT"
+  SHELL_DEBUG: "$NO_SILENT"
+
 
 # NEVER ever use gitlab-ci cache, its broken by design in most case of CI related tasks
 # when it comes to parrallel builds reusing local artefacts during jobs thorough the
@@ -81,6 +87,7 @@ variables:
 # /!\  /!\  /!\
 #
 before_script: &top_before_script
+- sh -ec 'for i in SHELL_DEBUG SDEBUG NO_STARTUP_LOGS NO_SILENT;do eval printf "$i=\${$i-}\\\n">>.env.dist;done'
 {%-if cookiecutter.use_submodule_for_deploy_code%}
 - &pullsubmodules
     cd {{cookiecutter.deploy_project_dir}} && git fetch origin && git reset --hard $SYMFONY_DEPLOY_VERSION && cd -
