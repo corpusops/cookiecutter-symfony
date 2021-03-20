@@ -25,16 +25,16 @@ VENV=../venv
 APP={{cookiecutter.app_type}}
 APP_USER=${APP_USER:-${APP}}
 APP_CONTAINER=${APP_CONTAINER:-${APP}}
-APP_CONTAINERs="^($APP_CONTAINER|celery)"
+APP_CONTAINERS="^($APP_CONTAINER|celery)"
 DEBUG=${DEBUG-}
-FORCE_OXC_SYNC=${FORCE_OXC_SYNC-}
 NO_BACKGROUND=${NO_BACKGROUND-}
+FORCE_OSX_SYNC=${FORCE_OSX_SYNC-}
 BUILD_PARALLEL=${BUILD_PARALLEL-1}
 BUILD_CONTAINERS="$APP_CONTAINER {%-if not cookiecutter.remove_fg%} $APP_CONTAINER-fg{%endif%} {%-if not cookiecutter.remove_cron%} cron{%endif%}"
 EDITOR=${EDITOR:-vim}
 DIST_FILES_FOLDERS=". src/*/settings"
 DEFAULT_CONTROL_COMPOSE_FILES="docker-compose.yml docker-compose-dev.yml"
-if [[ -n "${FORCE_OXC_SYNC}" ]];then
+if [[ -n "$FORCE_OSX_SYNC" ]]; then
     DEFAULT_CONTROL_COMPOSE_FILES="$DEFAULT_CONTROL_COMPOSE_FILES docker-compose-darwin.yml"
 fi
 CONTROL_COMPOSE_FILES="${CONTROL_COMPOSE_FILES:-$DEFAULT_CONTROL_COMPOSE_FILES}"
@@ -50,7 +50,7 @@ source_envs() {
             while read vardef;do
                 var="$(echo "$vardef" | awk -F= '{print $1}')"
                 val="$(echo "$vardef" | awk '{gsub(/^[^=]+=/, "");print;}')"
-                if ( echo "$val" | egrep -q "'" )  || ! ( echo "$val" | egrep '"' ) ;then
+                if ( echo "$val" | egrep -q "'" )  || ! ( echo "$val" | egrep -q '"' ) ;then
                     eval "$var=\"$val\""
                 else
                     eval "$var='$val'"
@@ -75,6 +75,8 @@ set_dc() {
 }
 
 log(){ echo "$@">&2;}
+
+die(){ log $@;exit 1; }
 
 vv() { log "$@";"$@";}
 
@@ -264,7 +266,10 @@ do_fg() {
 do_build() {
     local bargs="$@" bp=""
     if [[ -n $BUILD_PARALLEL ]];then
-        bp="--parallel"
+        bp="${bp} --parallel"
+    fi
+    if [[ -n $BUILDKIT_INLINE_CACHE ]];then
+        bp="${bp} --build-arg BUILDKIT_INLINE_CACHE=\"${BUILDKIT_INLINE_CACHE}\""
     fi
     set -- vv $DCB build $bp
     if [[ -z "$bargs" ]];then
@@ -477,6 +482,7 @@ do_open_perms_valve() {
         && setfacl -R -m $OPENVALVE_ACL /openvalve'
 }
 
+#  osx_sync: Foreground daemon to sync local files inside docker containers (volumes to be exact)
 do_osx_sync() {
         $DC exec $APP_CONTAINER bash -c "chown -Rf symfony var"
         $DC run --rm -e SHELL_USER=$APP_USER -u $APP_USER $APP_CONTAINER bash -c ": \
