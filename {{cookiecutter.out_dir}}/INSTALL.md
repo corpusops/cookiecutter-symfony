@@ -4,7 +4,7 @@ All following commands must be run only once at project installation.
 
 ## First clone
 
-```sh
+```bash
 git clone --recursive {{cookiecutter.git_project_url}} # choose between ssh and http
 {%if cookiecutter.use_submodule_for_deploy_code-%}cd {{cookiecutter.git_project}}
 git submodule init # only the fist time
@@ -18,9 +18,9 @@ You will need to add ``--ask-become-pass`` (or in earlier ansible versions: ``--
 
 ## Install docker and docker compose
 
-if you are under debian/ubuntu/mint/centos you can do the following:
+If you are under Debian/Ubuntu/Mint/CentOS and **if you do not already have** docker, docker-compose and corpusops on your PC, you can do the following:
 
-```sh
+```bash
 .ansible/scripts/download_corpusops.sh
 .ansible/scripts/setup_corpusops.sh
 local/*/bin/cops_apply_role --become \
@@ -28,14 +28,14 @@ local/*/bin/cops_apply_role --become \
 ```
 
 ... or follow official procedures for
-  [docker](https://docs.docker.com/install/#releases) and
-  [docker-compose](https://docs.docker.com/compose/install/).
+[docker](https://docs.docker.com/install/#releases) and
+[docker-compose](https://docs.docker.com/compose/install/).
 
 ## Update corpusops
 
-You may have to update corpusops time to time with
+You may have to update corpusops time to time with:
 
-```sh
+```bash
 ./control.sh up_corpusops
 ```
 
@@ -54,23 +54,29 @@ You need to login to our docker registry to be able to use it:
 
 
 ```bash
-docker login {{cookiecutter.docker_registry}}  # use your gitlab user
+# read below how to get a token before doing it
+docker login {{cookiecutter.docker_registry}}  # Use your GitLab account.
 ```
 
 {%- if cookiecutter.registry_is_gitlab_registry %}
 **⚠️ See also ⚠️** the
     [project docker registry]({{cookiecutter.git_project_url.replace('ssh://', 'https://').replace('git@', '')}}/container_registry)
 {%- else %}
-**⚠️ See also ⚠️** the makinacorpus doc in the docs/tools/dockerregistry section.
+**⚠️ See also ⚠️** the [makinacorpus doc in the docs/tools/dockerregistry
+section](https://docs.makina-corpus.net/tools/dev_dockerregistry/) to know how to get the docker registry token.
+
+You'll have to login on the docker registry using the 'gitlab sso' button, generate a token to use as a password and this token will only be visible for a few seconds (and it's very small and hard to see). Check the link for details.
 {%- endif%}
+
+Without the docker login step you can still run the project but you will not be able to **pull** existing images, you'll have to make a local **build**.
 
 # Use your development environment
 
 ## Update submodules
 
-Never forget to grab and update regulary the project submodules:
+Never forget to grab and update regularly the project submodules:
 
-```sh
+```bash
 git pull{% if cookiecutter.use_submodule_for_deploy_code
 %}
 git submodule init # only the fist time
@@ -96,33 +102,39 @@ After a last verification of the files, to run with docker, just type:
 ./control.sh up # Should be launched once each time you want to start the stack
 ```
 
-You may need some alteration on your local `/etc/hosts` to reach the site using
+You may need some alteration on your local ``/etc/hosts`` to reach the site using
 domains and ports declared in docker.env
 
 For example if you have:
 
 ```bash
-grep ABSOLUTE docker.env
+grep ABSOLUTE docker-compose.yml
   ABSOLUTE_URL_SCHEME=http
   ABSOLUTE_URL_DOMAIN={{cookiecutter.local_domain}}
-  ABSOLUTE_URL_PORT=8009
+  ABSOLUTE_URL_PORT={{cookiecutter.local_http_port}}
 ```
 
-The project should be reached in http://{{cookiecutter.local_domain}}:8009 and {{cookiecutter.local_domain}} must resolve to 127.0.0.1.
+The project should be reached in http://{{cookiecutter.local_domain}}:{{cookiecutter.local_http_port}} and {{cookiecutter.local_domain}} must resolve to ``127.0.0.1``.
 
-If you launch a `up` action on dev local environement the application is not yet installed. Shared directories with your local installation, containing things like the *vendors*, are empty, and the database may also be empty. A first test may needs commands like these ones :
+The first time you launch the `up` command on your local environment,
+the application is not yet installed. Shared directories with your local
+installation, containing things like the *vendors*, are empty, and the
+database may also be empty. A first test may need commands like these
+ones:
 
-```sh
+```bash
 ./control.sh up
 ./control.sh userexec bin/composerinstall
 ./control.sh console doctrine:migrations:migrate --allow-no-migration
+# or custom commands if they exist
+./control.sh console system:database:install --reset --test-data
 ```
 
 ## Troubleshoot problems
 
 You may need to check for problems by listing containers and checking logs with
 
-```sh
+```bash
 ./control.sh ps
 # here finding a line like this one:
 foobar_{{cookiecutter.app_type}}_1_4a022a7c19bd              /bin/sh -c dockerize -wait ...   Exit 1
@@ -131,68 +143,70 @@ foobar_{{cookiecutter.app_type}}_1_4a022a7c19bd              /bin/sh -c dockeriz
 docker logs -f foobar_{{cookiecutter.app_type}}_1_4a022a7c19bd
 ```
 
-In case of problems in the init.sh script of the {{cookiecutter.app_type}} container you can add some debug by adding a SDEBUG key in the env of the container, you can have even more details by adding an empty NO_STARTUP_LOG env. So, for example, edit your `docker.env` script and add:
 
-```sh
+In case of problems in the ``init.sh`` script of the symfony container you
+can add some debug by adding a SDEBUG key in the env of the container,
+you can have even more details by adding an empty NO\_STARTUP\_LOG env.
+So, for example, edit your ``docker.env`` script and add:
+
+```bash
 SDEBUG=1
 NO_STARTUP_LOG=
 ```
 
-## Start a shell inside the {{cookiecutter.app_type}} container
+## Start a shell inside the symfony container
 
 - for user shell
 
-    ```sh
+    ```bash
     ./control.sh usershell
+    # or
+    ./control.sh userexec
     ```
 
 - for root shell
 
-    ```sh
+    ```bash
     ./control.sh shell
+    # or
+    ./control.sh exec
     ```
 
 **⚠️ Remember ⚠️** to use `./control.sh up` to start the stack before.
 
 ## Run plain docker-compose commands
 
-- Please remember that the ``CONTROL_COMPOSE_FILES`` env var controls which docker-compose configs are use (list of space separated files), by default it uses the dev set.
+- Please remember that the ``CONTROL_COMPOSE_FILES`` env var controls
+  which docker-compose configs are use (list of space separated
+  files), by default it uses the dev set.
 
-    ```sh
-    ./control.sh dcompose <ARGS>
-    ```
+  ```bash
+  ./control.sh dcompose <ARGS>
+  ```
 
 ## Rebuild/Refresh local docker image in dev
 
-```sh
+```bash
 control.sh buildimages
-```
-
-## Running heavy session
-Like for installing and testing packages without burning them right now in requirements.<br/>
-You will need to add the network alias and maybe stop the django worker
-
-```sh
-./control.sh stop {{cookiecutter.app_type}}
-services_ports=1 ./control.sh usershell
-./manage.py runserserver 0.0.0.0:8000
 ```
 
 ## Calling Symfony console commands
 
-```sh
+```bash
 ./control.sh console [options]
 # For instance:
 # ./control.sh console doctrine:migrations:migrate --allow-no-migration
 # ./control.sh console cache:clear
 # ...
+# or:
+./control.sh userexec "bin/console [options]"
 ```
 
 **⚠️ Remember ⚠️** to use `./control.sh up` to start the stack before.
 
 ## Run tests
 
-```sh
+```bash
 ./control.sh tests
 # also consider: linting|coverage
 ```
@@ -205,7 +219,7 @@ If you get annoying file permissions problems on your host in development, you c
 user to use files in your working directory
 
 
-```sh
+```bash
 ./control.sh open_perms_valve
 ```
 
@@ -214,7 +228,7 @@ user to use files in your working directory
 Your application extensivly use docker volumes. From times to times you may
 need to erase them (eg: burn the db to start from fresh)
 
-```sh
+```bash
 docker volume ls  # hint: |grep \$app
 docker volume rm $id
 ```
@@ -225,75 +239,127 @@ Once you have build once your image, you have two options to reuse your image as
 
 - Solution1: Use the current image as an incremental build: Put in your .env
 
-    ```sh
+    ```bash
     {{cookiecutter.app_type.upper()}}_BASE_IMAGE={{ cookiecutter.docker_image }}:latest-dev
     ```
 
 - Solution2: Use a specific tag: Put in your .env
 
-    ```sh
+    ```bash
     {{cookiecutter.app_type.upper()}}_BASE_IMAGE=a tag
     # this <a_tag> will be done after issuing: docker tag registry.makina-corpus.net/mirabell/chanel:latest-dev a_tag
     ```
 
-## Integrating an IDE
-
-- <strong>DO NOT START YET YOUR IDE</strong>
-- Add to your .env and re-run ``./control.sh build {{cookiecutter.app_type}}``
-
-    ```sh
-    WITH VISUALCODE=1
-    #  or
-    WITH_PYCHARM=1
-    # note that you can also set the version to install (see .env.dist)
-    ```
-
-- Start the stack, but specially stop the app container as you will
-  have to separatly launch it wired to your ide
-
-    ```sh
-    ./control.sh up
-    ./control.sh down {{cookiecutter.app_type}}
-    ```
-
-### Get the completion and the code resolving for bundled dependencies wich are inside the container
-
-- Whenever you rebuild the image, you need to refresh the files for your IDE to complete bundle dependencies
-
-    ```sh
-    ./control.sh get_container_code
-    ```
+## IDE
 
 ### Using VSCode
 
-FIXME: partie copiée des envs python, à revoir pour PHP...
+Adding this to ``.vscode/settings.json`` would help to give you a smooth editing experience.
 
-- You must launch VSCode using ``./control.sh vscode`` as vscode needs to have the ``PHPPATH`` variable preset to make linters work
+```json
+{
+  "breadcrumbs.enabled": true,
+  "css.validate": true,
+  "diffEditor.ignoreTrimWhitespace": false,
+  "editor.tabSize": 4,
+  "editor.autoIndent": "full",
+  "editor.insertSpaces": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
+  "editor.renderControlCharacters": true,
+  "editor.renderWhitespace": "boundary",
+  "editor.wordWrapColumn": 100,
+  "editor.wordWrap": "bounded",
+  "editor.detectIndentation": true,
+  "editor.rulers": [
+    100
+  ],
+  "files.associations": {
+    "*.php": "php",
+    "*.html.twig": "twig"
+  },
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "html.format.enable": true,
+  "html.format.wrapLineLength": 80,
+  "telemetry.enableTelemetry": false,
 
-    ```sh
-    ./control.sh vscode
-    ```
-    - In other words, this add ``local/**/site-packages`` to vscode sys.path.
+  /* Empty Indent */
+  "emptyIndent.removeIndent": true,
+  "emptyIndent.highlightIndent": false,
+  "emptyIndent.highlightColor": "rgba(246,36,89,0.6)",
 
+  // Validate --------
+  "php.validate.enable": true,
+  "php.validate.run": "onType",
 
-Additionnaly, adding this to ``.vscode/settings.json`` would help to give you a smooth editing experience
+  // IntelliSense --------
+  "php.suggest.basic": false,
 
-  ```json
-  {
-    "files.watcherExclude": {
-        "**/.git/objects/**": true,
-        "**/.git/subtree-cache/**": true,
-        "**/node_modules/*/**": true,
-        "**/local/*/**": true,
-        "**/local/code/venv/lib/**/site-packages/**": false
-
-      }
+  // Intelephense.
+  "intelephense.environment.documentRoot": "app/public/index.php",
+  "intelephense.format.enable": false,
+  "php-docblocker.gap": true,
+  "php-docblocker.useShortNames": true,
+  "emmet.includeLanguages": {
+    "twig": "twig"
+  },
+  "files.eol": "\n",
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/*/**": true,
+    "**/local/*/**": true
   }
-  ```
+}
+```
 
-#### Debugging with VSCode
+### Recommended vscode extensions:
 
-FIXME
+- PHP intelephense (and not Intellisense)
+- PHP debug
+- (...)
+
+
+### Debugging with VSCode
+
+Create a .vscode/launch.json config file:
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Listen in 9000",
+            "type": "php",
+            "request": "launch",
+            "pathMappings": {
+                "/code/": "${workspaceFolder}"
+            },
+            "xdebugSettings": {
+                "max_data": 65535,
+                "show_hidden": 1,
+                "max_children": 100,
+                "max_depth": 5
+            },
+            "port": 9000,
+            "log": true,
+            "externalConsole": false,
+            "ignore": [
+                "**/vendor/**/*.php"
+            ]
+        }
+    ]
+}
+```
+
+Open the debug view in VSCode (CTRL+Shift+D), and start the listener named "Listen in 9000" (green arrow).
+
+Add your breakpoint in code.
+
+Visit the site with the XDEBUG argument, like: http://{{cookiecutter.local_domain}}:{{cookiecutter.local_http_port}}/something?XDEBUG_SESSION_START=foo
+
+And that's it.
 
 ## Doc for deployment on environments
 - [See here](./docs/README.md)
