@@ -50,10 +50,11 @@ services:
     - "${SYMFONY_DB_LISTEN:-0.0.0.0}:${SYMFONY_DB_PORT:-{{ cookiecutter.local_direct_db_port }}}:5432"
   nginx:
     environment:
-      NO_SSL: "{%if not cookiecutter.ssl_in_dev%}1{%endif%}"
-      NO_FORCE_SSL: "{%if not cookiecutter.ssl_in_dev%}1{%endif%}"
+      NO_SSL: "{%if not cookiecutter.ssl_in_dev%}1{%else%}0{%endif%}"
+      NO_FORCE_SSL: "1"
     ports:
-    - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTP_PORT:-{{cookiecutter.local_http_port}}}:80"
+      - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTP_PORT:-{{cookiecutter.local_http_port}}}:80"
+      - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}:443"
     volumes:
       # remount public/private (named volumes on prod, local remount on dev)
       # on /code/app/public/files and /code/app/private

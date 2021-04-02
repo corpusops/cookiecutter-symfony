@@ -8,6 +8,8 @@ x-images:
       # docker variables
       # parsed/replaced in CI via env-subst
       SYMFONY_NAME: "${SYMFONY_NAME-{{cookiecutter.symfony_project_name}}}"
+      NGINX_SERVERNAME: "${NGINX_SERVERNAME-{{cookiecutter.local_domain}}}"
+      NGINX_SERVER_ALIASES: "${NGINX_SERVER_ALIASES-www.{{cookiecutter.local_domain}}}"
       {% if 'post' in cookiecutter.db_mode %}
       POSTGRES_STARTUP_TIMEOUT: "${POSTGRES_STARTUP_TIMEOUT-45s}"
       POSTGRES_HOST: "${POSTGRES_HOST-db}"
@@ -33,9 +35,9 @@ x-images:
       DB_PASSWORD: "${DB_PASSWORD-password}"
       {% endif %}
       COOKIE_DOMAIN: "${COOKIE_DOMAIN-{{cookiecutter.local_domain}}}"
-      ABSOLUTE_URL_SCHEME: "${ABSOLUTE_URL_SCHEME-http}"
+      ABSOLUTE_URL_SCHEME: "${ABSOLUTE_URL_SCHEME-http{%if cookiecutter.ssl_in_dev %}s{%endif%}}"
       ABSOLUTE_URL_DOMAIN: "${ABSOLUTE_URL_DOMAIN-{{cookiecutter.local_domain}}}"
-      ABSOLUTE_URL_PORT: "${ABSOLUTE_URL_PORT-{{cookiecutter.local_http_port}}}"
+      ABSOLUTE_URL_PORT: "${ABSOLUTE_URL_PORT-{%if cookiecutter.ssl_in_dev%}{{cookiecutter.local_https_port}}{% else %}{{cookiecutter.local_http_port}}{% endif %}}"
       PHP_MAX_WORKERS: "${PHP_MAX_WORKERS-10}"
       PHP_MAX_SPARE_WORKERS: "${PHP_MAX_SPARE_WORKERS-5}"
       PHP_MIN_SPARE_WORKERS: "${PHP_MIN_SPARE_WORKERS-3}"
@@ -150,7 +152,7 @@ services:
         exec /bin/supervisord.sh
     environment:
       <<: [ *env_vars ]
-      SUPERVISORD_CONFIGS: cron nginx rsyslog
+      SUPERVISORD_CONFIGS: "cron nginx rsyslog"
   {{cookiecutter.app_type}}:
     <<: [ *{{cookiecutter.app_type}} ]
   {%- if cookiecutter.with_supervisor %}

@@ -103,7 +103,7 @@ After a last verification of the files, to run with docker, just type:
 ```
 
 You may need some alteration on your local ``/etc/hosts`` to reach the site using
-domains and ports declared in docker.env
+domains and ports declared in docker-compose.yml (or docker.env if you have overrides).
 
 For example if you have:
 
@@ -115,6 +115,20 @@ grep ABSOLUTE docker-compose.yml
 ```
 
 The project should be reached in http://{{cookiecutter.local_domain}}:{{cookiecutter.local_http_port}} and {{cookiecutter.local_domain}} must resolve to ``127.0.0.1``.
+
+{%if cookiecutter.ssl_in_dev%}
+
+If you have:
+
+```bash
+grep ABSOLUTE docker-compose.yml
+  ABSOLUTE_URL_SCHEME=https
+  ABSOLUTE_URL_DOMAIN={{cookiecutter.local_domain}}
+  ABSOLUTE_URL_PORT={{cookiecutter.local_https_port}}
+```
+Then ``{{cookiecutter.local_domain}}`` stills need to resolve to ``127.0.0.1`` but the access will be <https://{{cookiecutter.local_domain}}:{{cookiecutter.local_https_port}}> .
+
+{% endif %}
 
 The first time you launch the `up` command on your local environment,
 the application is not yet installed. Shared directories with your local
