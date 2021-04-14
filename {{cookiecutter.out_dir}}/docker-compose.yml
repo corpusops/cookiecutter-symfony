@@ -70,15 +70,15 @@ x-images:
       && echo "launching init.sh"
       && /init.sh
     volumes:
-      # - ./sys/crontab:/etc/cron.d/symfony # nope -> chown root done on that file, prefer a COPY, or a template
-      - logs:/logs/
-      - publiccontrib:/code/app/public/files
-      - publicbundles:/code/app/public/bundles
-      - private:/code/app/private
-      - cache:/code/app/var/cache
-      # volume that we need to feed for nginx docker
-      - webroot:/code/app/var/nginxwebroot
-      - ./data:/code/data
+    # - ./sys/crontab:/etc/cron.d/symfony # nope -> chown root done on that file, prefer a COPY, or a template
+    - logs:/logs/
+    - publiccontrib:/code/app/public/files
+    - publicbundles:/code/app/public/bundles
+    - private:/code/app/private
+    - cache:/code/app/var/cache
+    # volume that we need to feed for nginx docker
+    - webroot:/code/app/var/nginxwebroot
+    - ./data:/code/data
 services:
   mailcatcher:
     <<: [ *env ]
@@ -96,63 +96,63 @@ services:
       MH_AUTH_FILE: /home/mailhog/pw
     user: root
     entrypoint:
-      - sh
-      - '-c'
-      - >
-        chown mailhog /mails
-        && pw=$$(MH_AUTH_FILE="" MailHog bcrypt "$${MAILCATCHER_PASSWORD:-mailcatcher}")
-        && echo "$${MAILCATCHER_USER:-mailcatcher}:$$pw" > $$MH_AUTH_FILE
-        && su mailhog -p -c MailHog
+    - sh
+    - '-c'
+    - >
+      chown mailhog /mails
+      && pw=$$(MH_AUTH_FILE="" MailHog bcrypt "$${MAILCATCHER_PASSWORD:-mailcatcher}")
+      && echo "$${MAILCATCHER_USER:-mailcatcher}:$$pw" > $$MH_AUTH_FILE
+      && su mailhog -p -c MailHog
   {%if cookiecutter.with_redis%}
   redis:
     <<: [ *env ]
     image: "{{cookiecutter.redis_image}}"
     hostname: redis
     volumes:
-      - 'redis:/data'
+    - 'redis:/data'
   {%endif%}
   db:
     <<: [ *env ]
     image: "{{cookiecutter["{0}_image".format(cookiecutter.db_mode)]}}"
     volumes:
-      - postgresql:/var/lib/postgresql/data
+    - postgresql:/var/lib/postgresql/data
   nginx:
     <<: [ *env ]
     image: "{{cookiecutter.nginx_image}}"
     depends_on:
-      - {{cookiecutter.app_type}}
-      - mailcatcher
+    - {{cookiecutter.app_type}}
+    - mailcatcher
     links:
-      - {{cookiecutter.app_type}}:{{cookiecutter.app_type}}
-      - mailcatcher:mailcatcher
+    - {{cookiecutter.app_type}}:{{cookiecutter.app_type}}
+    - mailcatcher:mailcatcher
     volumes:
-      - ./sys/etc/nginx/vhost.conf.template:/etc/nginx/conf.d/default.conf.template
-      - webroot:/code/app/public
-      - publiccontrib:/code/app/public/files:ro
-      - publicbundles:/code/app/public/bundles:ro
-      - private:/code/app/private:ro
-      - logs:/logs/
-      - nginx-certs:/certs
-      - ./data:/code/data
+    - ./sys/etc/nginx/vhost.conf.template:/etc/nginx/conf.d/default.conf.template
+    - webroot:/code/app/public
+    - publiccontrib:/code/app/public/files:ro
+    - publicbundles:/code/app/public/bundles:ro
+    - private:/code/app/private:ro
+    - logs:/logs/
+    - nginx-certs:/certs
+    - ./data:/code/data
     command:
-      - sh
-      - '-ec'
-      - |-
-        export SYMFONY__HTTP_PROTECT_USER=$${SYMFONY__HTTP_PROTECT_USER:-root}
-        export SYMFONY__HTTP_PROTECT_PASSWORD=$${SYMFONY__HTTP_PROTECT_PASSWORD-}
-        touch /etc/htpasswd-protect
-        chmod 644 /etc/htpasswd-protect
-        if [ "x$$SYMFONY__HTTP_PROTECT_PASSWORD" != "x" ];then
-          echo "/ htpasswd:">&2
-          echo "$$SYMFONY__HTTP_PROTECT_PASSWORD"\
-          | htpasswd -bim /etc/htpasswd-protect "$$SYMFONY__HTTP_PROTECT_USER"
-        fi
-        v=/etc/nginx/conf.d/default.conf
-        frep $${v}.template:$${v} --overwrite
-        exec /bin/supervisord.sh
+    - sh
+    - '-ec'
+    - |-
+      export SYMFONY__HTTP_PROTECT_USER=$${SYMFONY__HTTP_PROTECT_USER:-root}
+      export SYMFONY__HTTP_PROTECT_PASSWORD=$${SYMFONY__HTTP_PROTECT_PASSWORD-}
+      touch /etc/htpasswd-protect
+      chmod 644 /etc/htpasswd-protect
+      if [ "x$$SYMFONY__HTTP_PROTECT_PASSWORD" != "x" ];then
+        echo "/ htpasswd:">&2
+        echo "$$SYMFONY__HTTP_PROTECT_PASSWORD"\
+        | htpasswd -bim /etc/htpasswd-protect "$$SYMFONY__HTTP_PROTECT_USER"
+      fi
+      v=/etc/nginx/conf.d/default.conf
+      frep $${v}.template:$${v} --overwrite
+      exec /bin/supervisord.sh
     environment:
       <<: [ *env_vars ]
-      SUPERVISORD_CONFIGS: "cron nginx rsyslog"
+      SUPERVISORD_CONFIGS: cron nginx rsyslog
   {{cookiecutter.app_type}}:
     <<: [ *{{cookiecutter.app_type}} ]
   {%- if cookiecutter.with_supervisor %}

@@ -13,37 +13,37 @@ x-images:
       NO_CACHE_CLEAR: "1"
       NO_COMPOSER: "1"
     volumes: &{{cookiecutter.app_type}}_volumes
-      #- ./local/symfony-deploy-common/sys/sudoer:/etc/sudoers.d/${APP_TYPE:-symfony}
-      - ./sys/sbin:/code/sys/sbin/
-      - ./sys/sbin:/code/sbin/
-      {%-if cookiecutter.use_submodule_for_deploy_code %}
-      - ./local/symfony-deploy-common/sys/init.sh:/code/sys/init.sh
-      - ./local/symfony-deploy-common/sys/init.sh:/code/init/init.sh
-      - ./local/symfony-deploy-common/sys/sbin/composerinstall.sh:/code/init/sbin/composerinstall.sh
-      - ./local/symfony-deploy-common/sys/sbin/composer.sh:/code/init/sbin/composer.sh
-      - ./local/symfony-deploy-common/sys/etc/supervisor.d:/code/sys/etc/supervisor.d
-      - ./local/symfony-deploy-common/sys/etc/php-fpm.d:/code/sys/etc/php-fpm.d
-      - ./local/symfony-deploy-common:/code/local/symfony-deploy-common
-      {%- else%}
-      - ./sys/init.sh:/code/sys/init.sh
-      - ./sys/init.sh:/code/init/init.sh
-      - ./sys/sbin/composerinstall.sh:/code/init/sbin/composerinstall.sh
-      - ./sys/sbin/composer.sh:/code/init/sbin/composer.sh
-      - ./sys/etc/supervisor.d:/code/sys/etc/supervisor.d
-      - ./sys/etc/php-fpm.d:/code/sys/etc/php-fpm.d
-      - ./:/code/local/symfony-deploy-common
-      {%- endif%}
-      - ./sys/etc/supervisor.d:/code/etc/supervisor.d
-      - ./local:/code/local
-      - ./app:/code/app
-      # remount public/private (named volumes on prod, local remount on dev)
-      # on /code/app/public/files and /code/app/private
-      - ./app/public/files:/code/app/public/files
-      - ./app/public/bundles:/code/app/public/bundles
-      - ./app/private:/code/app/private
-      - ./app/var/cache:/code/app/var/cache
-      # Pour la documentation, parce qu'une commande symfony peut générer du rst
-      - ./docs:/code/app/docs
+    #- ./local/symfony-deploy-common/sys/sudoer:/etc/sudoers.d/${APP_TYPE:-symfony}
+    - ./sys/sbin:/code/sys/sbin/
+    - ./sys/sbin:/code/sbin/
+    {%-if cookiecutter.use_submodule_for_deploy_code %}
+    - ./local/symfony-deploy-common/sys/init.sh:/code/sys/init.sh
+    - ./local/symfony-deploy-common/sys/init.sh:/code/init/init.sh
+    - ./local/symfony-deploy-common/sys/sbin/composerinstall.sh:/code/init/sbin/composerinstall.sh
+    - ./local/symfony-deploy-common/sys/sbin/composer.sh:/code/init/sbin/composer.sh
+    - ./local/symfony-deploy-common/sys/etc/supervisor.d:/code/sys/etc/supervisor.d
+    - ./local/symfony-deploy-common/sys/etc/php-fpm.d:/code/sys/etc/php-fpm.d
+    - ./local/symfony-deploy-common:/code/local/symfony-deploy-common
+    {%- else%}
+    - ./sys/init.sh:/code/sys/init.sh
+    - ./sys/init.sh:/code/init/init.sh
+    - ./sys/sbin/composerinstall.sh:/code/init/sbin/composerinstall.sh
+    - ./sys/sbin/composer.sh:/code/init/sbin/composer.sh
+    - ./sys/etc/supervisor.d:/code/sys/etc/supervisor.d
+    - ./sys/etc/php-fpm.d:/code/sys/etc/php-fpm.d
+    - ./:/code/local/symfony-deploy-common
+    {%- endif%}
+    - ./sys/etc/supervisor.d:/code/etc/supervisor.d
+    - ./local:/code/local
+    - ./app:/code/app
+    # remount public/private (named volumes on prod, local remount on dev)
+    # on /code/app/public/files and /code/app/private
+    - ./app/public/files:/code/app/public/files
+    - ./app/public/bundles:/code/app/public/bundles
+    - ./app/private:/code/app/private
+    - ./app/var/cache:/code/app/var/cache
+    # Pour la documentation, parce qu'une commande symfony peut générer du rst
+    - ./docs:/code/app/docs
 services:
   db:
     ports:
@@ -56,11 +56,11 @@ services:
       - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTP_PORT:-{{cookiecutter.local_http_port}}}:80"
       - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}:443"
     volumes:
-      # remount public/private (named volumes on prod, local remount on dev)
-      # on /code/app/public/files and /code/app/private
-      - ./app/public/:/code/app/public
-      - ./app/public/files:/code/app/public/files:ro
-      - ./app/private:/code/app/private:ro
+    # remount public/private (named volumes on prod, local remount on dev)
+    # on /code/app/public/files and /code/app/private
+    - ./app/public/:/code/app/public
+    - ./app/public/files:/code/app/public/files:ro
+    - ./app/private:/code/app/private:ro
   backup: {<<: [ *bypass ]}
   {%- if not cookiecutter.remove_cron %}
   cron:
