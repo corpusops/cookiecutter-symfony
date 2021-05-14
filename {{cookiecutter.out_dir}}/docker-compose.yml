@@ -1,17 +1,59 @@
 {%- set db_tag = 'post' in cookiecutter.db_mode and 'postgres' or cookiecutter.db_mode -%}
 version: '3.7'
 x-images:
-  env: &env {env_file: [.env, docker.env]}
+  env: &env
+    env_file: [.env, docker.env]
+    environment: &env_vars
+      APP_TYPE: "${APP_TYPE-{{cookiecutter.app_type}}}"
+      # docker variables
+      # parsed/replaced in CI via env-subst
+      SYMFONY_NAME: "${SYMFONY_NAME-{{cookiecutter.symfony_project_name}}}"
+      {% if 'post' in cookiecutter.db_mode %}
+      POSTGRES_STARTUP_TIMEOUT: "${POSTGRES_STARTUP_TIMEOUT-45s}"
+      POSTGRES_HOST: "${POSTGRES_HOST-db}"
+      POSTGRES_PORT: "${POSTGRES_PORT-5432}"
+      POSTGRES_DB: "${POSTGRES_DB-db}"
+      POSTGRES_USER: "${POSTGRES_USER-user}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD-password}"
+      PGPASSWD: "${POSTGRES_PASSWORD-password}"
+      PGPASSWORD: "${POSTGRES_PASSWORD-password}"
+      DATABASE_URL: "${DATABASE_URL-pgsql://user:password@db:5432/db}"
+      {% elif 'mysql' in cookiecutter.db_mode %}
+      MYSQL_HOST: "${MYSQL_HOST-db}"
+      MYSQL_PORT: "${MYSQL_PORT-3306}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE-db}"
+      MYSQL_USER: "${MYSQL_USER-user}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD-password}"
+      DATABASE_URL: "${DATABASE_URL-mysql://user:password@db:3306/db}"
+      {% else %}
+      DB_HOST: "${DB_HOST-db}"
+      DB_PORT: "${DB_PORT-}"
+      DB_NAME: "${DB_NAME-db}"
+      DB_USER: "${DB_USER-user}"
+      DB_PASSWORD: "${DB_PASSWORD-password}"
+      {% endif %}
+      COOKIE_DOMAIN: "${COOKIE_DOMAIN-{{cookiecutter.local_domain}}}"
+      ABSOLUTE_URL_SCHEME: "${ABSOLUTE_URL_SCHEME-http}"
+      ABSOLUTE_URL_DOMAIN: "${ABSOLUTE_URL_DOMAIN-{{cookiecutter.local_domain}}}"
+      ABSOLUTE_URL_PORT: "${ABSOLUTE_URL_PORT-{{cookiecutter.local_http_port}}}"
+      PHP_MAX_WORKERS: "${PHP_MAX_WORKERS-10}"
+      PHP_MAX_SPARE_WORKERS: "${PHP_MAX_SPARE_WORKERS-5}"
+      PHP_MIN_SPARE_WORKERS: "${PHP_MIN_SPARE_WORKERS-3}"
+      # This need to be changed in productionc
+      MAILCATCHER_USER: "${MAILCATCHER_USER-mailcatcher}"
+      MAILCATCHER_PASSWORD: "${MAILCATCHER_PASSWORD-mailcatcher}"
   {{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
     <<: [ *env ]
     tty: true
     image: "${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE}:${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}-dev"
     environment: &{{cookiecutter.app_type}}_env
+      <<: [ *env_vars ]
+      PROJECT_PACKAGE: "${PROJECT_PACKAGE-{{cookiecutter.symfony_project_name}}}"
+      PROJECT_DIR: "${PROJECT_DIR-/code/app/}"
       PHP_USER: "{{cookiecutter.app_type}}"
       PHP_GROUP: "{%if cookiecutter.base_os=='centos'%}apache{%else%}www-data{%endif%}"
       APP_ENV: "${APP_ENV:-prod}"
       APP_SECRET: "${APP_SECRET:-77fd8b950969a6909c46ab0b6fd5d062}"
-      POSTGRES_STARTUP_TIMEOUT: "45s"
       IMAGE_MODE: phpfpm
     depends_on:
     - db
@@ -104,7 +146,7 @@ services:
         frep $${v}.template:$${v} --overwrite
         exec /bin/supervisord.sh
     environment:
-    - SUPERVISORD_CONFIGS=/etc/supervisor.d/cron /etc/supervisor.d/nginx /etc/supervisor.d/rsyslog
+    - SUPERVISORD_CONFIGS=cron nginx rsyslog
   {{cookiecutter.app_type}}:
     <<: [ *{{cookiecutter.app_type}} ]
   {%- if cookiecutter.with_supervisor %}
@@ -145,7 +187,7 @@ services:
     - '-c'
     - |-
       set -ex
-      POSTGRES_STARTUP_TIMEOUT=45s
+      POSTGRES_STARTUP_TIMEOUT=$${POSTGRES_STARTUP_TIMEOUT-45s}
       flag=/started_$$(echo $$POSTGRES_DB|sed -re "s![/:]!__!g")
       if [ -e "$$flag" ];then rm -f "$$flag";fi
       echo "Try connection to pgsql: $$POSTGRES_DB & wait for db init" >&2 \

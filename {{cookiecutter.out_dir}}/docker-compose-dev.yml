@@ -5,8 +5,8 @@ x-images:
     entrypoint: 'sh -c "while true;do echo notstarted;sleep 65000;done"'
   {{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
     environment: &{{cookiecutter.app_type}}_env
-      APP_ENV: "dev"
-      APP_SECRET: "42"
+      APP_ENV: "${APP_ENV-dev}"
+      APP_SECRET: "${APP_SECRET-11111111111111111111111111111111}"
       PHP_DISPLAY_ERROR: 1
       NO_MIGRATE: "1"
       NO_COLLECT_STATIC: "1"
