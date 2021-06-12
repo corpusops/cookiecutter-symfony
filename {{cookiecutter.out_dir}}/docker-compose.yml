@@ -76,6 +76,7 @@ x-images:
       - cache:/code/app/var/cache
       # volume that we need to feed for nginx docker
       - webroot:/code/app/var/nginxwebroot
+      - ./data:/code/data
 services:
   mailcatcher:
     <<: [ *env ]
@@ -130,6 +131,7 @@ services:
       - private:/code/app/private:ro
       - logs:/logs/
       - nginx-certs:/certs
+      - ./data:/code/data
     command:
       - sh
       - '-ec'
