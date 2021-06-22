@@ -20,12 +20,16 @@ x-images:
       {%-if cookiecutter.use_submodule_for_deploy_code %}
       - ./local/symfony-deploy-common/sys/init.sh:/code/sys/init.sh
       - ./local/symfony-deploy-common/sys/init.sh:/code/init/init.sh
+      - ./local/symfony-deploy-common/sys/sbin/composerinstall.sh:/code/init/sbin/composerinstall.sh
+      - ./local/symfony-deploy-common/sys/sbin/composer.sh:/code/init/sbin/composer.sh
       - ./local/symfony-deploy-common/sys/etc/supervisor.d:/code/sys/etc/supervisor.d
       - ./local/symfony-deploy-common/sys/etc/php-fpm.d:/code/sys/etc/php-fpm.d
       - ./local/symfony-deploy-common:/code/local/symfony-deploy-common
       {%- else%}
       - ./sys/init.sh:/code/sys/init.sh
       - ./sys/init.sh:/code/init/init.sh
+      - ./sys/sbin/composerinstall.sh:/code/init/sbin/composerinstall.sh
+      - ./sys/sbin/composer.sh:/code/init/sbin/composer.sh
       - ./sys/etc/supervisor.d:/code/sys/etc/supervisor.d
       - ./sys/etc/php-fpm.d:/code/sys/etc/php-fpm.d
       - ./:/code/local/symfony-deploy-common
