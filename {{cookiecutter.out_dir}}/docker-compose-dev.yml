@@ -14,7 +14,6 @@ x-images:
       NO_COMPOSER: "1"
     volumes: &{{cookiecutter.app_type}}_volumes
       #- ./local/symfony-deploy-common/sys/sudoer:/etc/sudoers.d/${APP_TYPE:-symfony}
-      - ./sys/sbin:/code/init/sbin/
       - ./sys/sbin:/code/sys/sbin/
       - ./sys/sbin:/code/sbin/
       {%-if cookiecutter.use_submodule_for_deploy_code %}
