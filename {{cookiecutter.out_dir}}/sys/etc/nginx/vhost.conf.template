@@ -85,6 +85,10 @@ types {
     text/cache-manifest                   appcache;
 }
 
+{{if (eq .Env.DRUPAL_ENV_NAME "prod" ) }}
+server_tokens off;
+{{ end }}
+
 server {
     listen 80;
 
