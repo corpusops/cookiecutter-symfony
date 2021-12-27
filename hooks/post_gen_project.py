@@ -73,6 +73,8 @@ if [ ! -e "{{cookiecutter.deploy_project_dir}}/.git" ];then
   && git fetch origin && git reset --hard origin/{DEPLOY_BR} )
 """.format(**locals())
 EGITSCRIPT = """
+sed="sed";if (uname | egrep -iq "darwin|bsd");then sed="gsed";fi
+if !($sed --version);then echo $sed not avalaible;exit 1;fi
 {%raw%}vv() {{ echo "$@">&2;"$@"; }}{%endraw%}
 {% for i in ['dev', 'prod', 'qa', 'staging'] -%}
 {% if not cookiecutter['{0}_host'.format(i)]%}
@@ -86,10 +88,10 @@ rm -rfv \
 {% endif %}
 {% endfor %}
 if [ -e Dockerfile ] && [ ! -h Dockerfile ];then
-sed -i -re \
-	"s/PHP_VER=.*/PHP_VER={{cookiecutter.php_ver}}/g" \
+$sed -i -re \
+   "s/PHP_VER=.*/PHP_VER={{cookiecutter.php_ver}}/g" \
 	Dockerfile
-sed -i -re \
+$sed -i -re \
 	"s/project/{{cookiecutter.symfony_project_name}}/g" \
 	Dockerfile
 fi
@@ -99,7 +101,7 @@ set +x
 while read f;do
     if ( egrep -q "local/{{cookiecutter.app_type}}" "$f" );then
         echo "rewrite: $f"
-        vv sed -i -r \
+        vv $sed -i -r \
         -e "s|local/{{cookiecutter.app_type}}/||g" \
         -e "/(ADD\s+){{cookiecutter.deploy_project_dir.replace('/', '\/')}}\/ local/d" \
         -e "s|{{cookiecutter.deploy_project_dir}}/||g" \
