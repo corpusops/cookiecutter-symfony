@@ -19,7 +19,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = '{{ cookiecutter.name }}'
+project = '{{ cookiecutter.sphinx_title }}'
 copyright = '{{cookiecutter.sphinx_copyright}}'
 author = '{{cookiecutter.sphinx_author}}'
 

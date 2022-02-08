@@ -132,11 +132,13 @@
     "node_image_flavor": "-slim",
     "with_reset_stagingprod_jobs": "",
     "main_branch": "master",
+    "main_branch": "master",
     "monitoring_network": "10.0.0.0/8",
     "sphinx_theme": "sphinx_makina_theme",
     "sphinx_theme_path": "",
-    "sphinx_copyright": "FIXME",
-    "sphinx_author": "FIXME",
+    "sphinx_title": "{{cookiecutter.lname}}",
+    "sphinx_copyright": "{{cookiecutter.lname}}",
+    "sphinx_author": "{{cookiecutter.lname}}",
     "doctrine_migrate": "y",
     "no_tags_pipelines": "y"
 }
