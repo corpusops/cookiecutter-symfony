@@ -20,6 +20,7 @@
 {{'{{'}} $v := merge $v ( dict "real_ip_from"                ( .Env.NGINX_REAL_IP_FROM | default "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16" )) }}
 {{'{{'}} $v := merge $v ( dict "ssl_ciphers"                 ( .Env.NGINX_SSL_CIPHERS | default $dciphers )                                 ) }}
 {{'{{'}} $v := merge $v ( dict "ssl_protocols"               ( .Env.NGINX_SSL_PROTOCOLS | default "TLSv1 TLSv1.1 TLSv1.2" )                 ) }}
+{{'{{'}} $v := merge $v ( dict "loglevel"                    ( .Env.NGINX_LOGLEVEL | default "crit" )                                       ) }}
 
 # optimize internal nginx buffers
 types_hash_max_size 2048;
@@ -82,7 +83,7 @@ server {
     server_name {{'{{'}} $v.server_name }}{{'{{'}}if $v.server_aliases }}{{'{{'}}$v.server_aliases}}{{'{{'}}end}};
     server_name_in_redirect {{'{{'}} $v.server_name_in_redirect }};
 
-    error_log  /logs/symfony-error.log  info;
+    error_log  /logs/symfony-error.log  {{'{{'}} $v.loglevel }};
     access_log /logs/symfony-access.log custom_combined if=$method_loggable;
 
     {{'{{'}} define "vhost" }}
