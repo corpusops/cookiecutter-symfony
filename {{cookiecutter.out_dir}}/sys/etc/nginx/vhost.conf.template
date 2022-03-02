@@ -39,6 +39,7 @@ proxy_busy_buffers_size 256k;
 log_format custom_combined '"$remote_addr - $remote_user [$time_local] "$request" $status $bytes_sent "$http_referer" "$http_user_agent" "$gzip_ratio"';
 # Define type of requests going to logs (to remove OPTIONS requests for example)
 map $request_method $method_loggable { OPTIONS 0;default 1;}
+map $request_method $restrict_access { OPTIONS off;default "Restricted";}
 
 # activate real_ip logging
 real_ip_recursive {{'{{'}} $v.real_ip_from_recursive }};
@@ -88,7 +89,7 @@ server {
 
     {{'{{'}} define "vhost" }}
     {{'{{'}} if .Env.SYMFONY__HTTP_PROTECT_PASSWORD }}
-    auth_basic            "Restricted";
+    auth_basic            $restrict_access;
     auth_basic_user_file  /etc/htpasswd-protect;
     {{'{{'}} end }}
     gzip on;
