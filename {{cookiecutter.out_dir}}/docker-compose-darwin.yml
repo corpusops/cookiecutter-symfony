@@ -5,15 +5,15 @@ x-images:
     entrypoint: 'sh -c "while true;do echo notstarted;sleep 65000;done"'
   {{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
     volumes: &{{cookiecutter.app_type}}_volumes
-      - ./app:/code/app.host
-      - ./app/public/:/code/app.host/public
-      # remount a volume from the hyve VM for better IOs
-      - osx-app:/code/app
-      - ./app/public/files:/code/app/public/files
-      - ./app/public/bundles:/code/app/public/bundles
-      - ./app/private:/code/app/private
-      - osx-var:/code/app/var
-      - osx-cache:/code/app/var/cache
+    - ./app:/code/app.host
+    - ./app/public/:/code/app.host/public
+    # remount a volume from the hyve VM for better IOs
+    - osx-app:/code/app
+    - ./app/public/files:/code/app/public/files
+    - ./app/public/bundles:/code/app/public/bundles
+    - ./app/private:/code/app/private
+    - osx-var:/code/app/var
+    - osx-cache:/code/app/var/cache
 services:
   cron:
     <<: [ *bypass, *{{cookiecutter.app_type}} ]
@@ -25,15 +25,15 @@ services:
   {%-endif%}
   nginx:
     volumes:
-      - ./app:/code/app.host
-      - ./app/public/:/code/app.host/public
-      # remount a volume from the hyve VM for better IOs
-      - osx-app:/code/app
-      - ./app/public/files:/code/app/public/files
-      - ./app/public/bundles:/code/app/public/bundles
-      - ./app/private:/code/app/private
-      - osx-var:/code/app/var
-      - osx-cache:/code/app/var/cache
+    - ./app:/code/app.host
+    - ./app/public/:/code/app.host/public
+    # remount a volume from the hyve VM for better IOs
+    - osx-app:/code/app
+    - ./app/public/files:/code/app/public/files
+    - ./app/public/bundles:/code/app/public/bundles
+    - ./app/private:/code/app/private
+    - osx-var:/code/app/var
+    - osx-cache:/code/app/var/cache
 volumes:
   osx-app:
   osx-var:
