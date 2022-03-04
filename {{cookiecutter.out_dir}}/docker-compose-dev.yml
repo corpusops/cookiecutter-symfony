@@ -19,27 +19,27 @@ x-images:
       # NO_STARTUP_LOGS: ""
     volumes: &{{cookiecutter.app_type}}_volumes
     {%-if cookiecutter.use_submodule_for_deploy_code %}
-    - ./local/symfony-deploy-common/sys/init.sh:/code/init/init.sh
-    - ./local/symfony-deploy-common:/code/local/symfony-deploy-common
+      - ./local/symfony-deploy-common/sys/init.sh:/code/init/init.sh
+      - ./local/symfony-deploy-common:/code/local/symfony-deploy-common
     {%- else%}
-    - ./sys/init.sh:/code/init/init.sh
-    - ./:/code/local/symfony-deploy-common
+      - ./sys/init.sh:/code/init/init.sh
+      - ./:/code/local/symfony-deploy-common
     {%- endif%}
-    - ./sys:/code/sys
-    - ./local:/code/local
-    - ./app:/code/app
-    # remount public/private (named volumes on prod, local remount on dev)
-    # on /code/app/public/files and /code/app/private
-    - ./app/public/files:/code/app/public/files
-    - ./app/public/bundles:/code/app/public/bundles
-    - ./app/private:/code/app/private
-    - ./app/var/cache:/code/app/var/cache
-    # For documentation as symfony can generate rst
-    - ./docs:/code/app/docs
+      - ./sys:/code/sys
+      - ./local:/code/local
+      - ./app:/code/app
+      # remount public/private (named volumes on prod, local remount on dev)
+      # on /code/app/public/files and /code/app/private
+      - ./app/public/files:/code/app/public/files
+      - ./app/public/bundles:/code/app/public/bundles
+      - ./app/private:/code/app/private
+      - ./app/var/cache:/code/app/var/cache
+      # For documentation as symfony can generate rst
+      - ./docs:/code/app/docs
 services:
   db:
     ports:
-    - "${SYMFONY_DB_LISTEN:-0.0.0.0}:${SYMFONY_DB_PORT:-{{ cookiecutter.local_direct_db_port }}}:{{cookiecutter.db_port}}"
+      - "${SYMFONY_DB_LISTEN:-0.0.0.0}:${SYMFONY_DB_PORT:-{{ cookiecutter.local_direct_db_port }}}:{{cookiecutter.db_port}}"
   nginx:
     environment:
       <<: [ *{{cookiecutter.app_type}}_env ]
@@ -48,17 +48,17 @@ services:
       NGINX_PORT: "${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_http_port}}}"
       NGINX_SSL_PORT: "${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}"
     ports:
-    - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTP_PORT:-{{cookiecutter.local_http_port}}}:${SYMFONY_HTTP_PORT:-{{cookiecutter.local_http_port}}}"
+      - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTP_PORT:-{{cookiecutter.local_http_port}}}:${SYMFONY_HTTP_PORT:-{{cookiecutter.local_http_port}}}"
 {%-if cookiecutter.ssl_in_dev %}
-    - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}"
+      - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}"
 {%- endif %}
     volumes:
-    # remount public/private (named volumes on prod, local remount on dev)
-    # on /code/app/public/files and /code/app/private
-    - ./app/public/:/code/app/public
-    - ./app/public/bundles:/code/app/public/bundles:ro
-    - ./app/public/files:/code/app/public/files:ro
-    - ./app/private:/code/app/private:ro
+      # remount public/private (named volumes on prod, local remount on dev)
+      # on /code/app/public/files and /code/app/private
+      - ./app/public/:/code/app/public
+      - ./app/public/bundles:/code/app/public/bundles:ro
+      - ./app/public/files:/code/app/public/files:ro
+      - ./app/private:/code/app/private:ro
   backup: {<<: [ *bypass ]}
 {%- if not cookiecutter.remove_cron %}
   cron:
