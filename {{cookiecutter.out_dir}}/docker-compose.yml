@@ -45,6 +45,7 @@ x-images:
       PHP_MAX_SPARE_WORKERS: "${PHP_MAX_SPARE_WORKERS-5}"
       PHP_MIN_SPARE_WORKERS: "${PHP_MIN_SPARE_WORKERS-3}"
       PHP_MEMORY_LIMIT: "${PHP_MEMORY_LIMIT:-{{cookiecutter.php_memory_limit}}}"
+      PHP_XDEBUG_ENABLED: "${PHP_XDEBUG_ENABLED-0}"
       # This need to be changed in productionc
       MAILCATCHER_USER: "${MAILCATCHER_USER-mailcatcher}"
       MAILCATCHER_PASSWORD: "${MAILCATCHER_PASSWORD-mailcatcher}"
