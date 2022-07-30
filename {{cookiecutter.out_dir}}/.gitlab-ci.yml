@@ -90,7 +90,7 @@ before_script: &top_before_script
 - sh -ec 'for i in SHELL_DEBUG SDEBUG NO_STARTUP_LOGS NO_SILENT;do eval printf "$i=\${$i-}\\\n">>.env.dist;done'
 {%-if cookiecutter.use_submodule_for_deploy_code%}
 - &pullsubmodules
-    cd {{cookiecutter.deploy_project_dir}} && git fetch origin && git reset --hard $SYMFONY_DEPLOY_VERSION && cd -
+    cd {{cookiecutter.deploy_project_dir}} && ( git fetch --unshallow || true ) && git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*" && git fetch origin && git reset --hard $SYMFONY_DEPLOY_VERSION && cd -
 {%endif%}
 - for i in
     /cache/$CI_PROJECT_PATH_SLUG/docker-images
