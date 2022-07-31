@@ -193,6 +193,7 @@ build_images: &build_images
 .tests_tpl: &tests_tpl
   tags: ["{{cookiecutter.runner_tag}}"]
   stage: tests
+  except: [qa, staging, prod]
   variables: &test_vars_tpl
     PRELOAD_IMAGES: ""
     CI: "true"
