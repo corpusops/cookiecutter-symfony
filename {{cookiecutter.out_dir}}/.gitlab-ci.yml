@@ -342,6 +342,7 @@ teardown_env: &teardown_env
 {{cypresscomment}}  stage: deploy
 {{cypresscomment}}  when: manual
 {{cypresscomment}}  only: [master, cypress, tags]
+{{cypresscomment}}  except: []
 {{cypresscomment}}  variables:
 {{cypresscomment}}    PRELOAD_IMAGES: ""
 {{cypresscomment}}    CI: "true"
