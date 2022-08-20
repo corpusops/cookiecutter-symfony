@@ -1,4 +1,11 @@
 #!/bin/bash
+
+# If you need more debug play with these variables:
+# export NO_STARTUP_LOGS=
+# export SHELL_DEBUG=1
+# export DEBUG=1
+# start by the first one, then try the others
+
 set -e
 readlinkf() {
     if ( uname | egrep -iq "darwin|bsd" );then
@@ -40,6 +47,10 @@ fi
 CONTROL_COMPOSE_FILES="${CONTROL_COMPOSE_FILES:-$DEFAULT_CONTROL_COMPOSE_FILES}"
 COMPOSE_COMMAND=${COMPOSE_COMMAND:-docker-compose}
 ENV_FILES="${ENV_FILES:-.env docker.env}"
+# special case: be sure to define some docker internal variables but let them overridable through .env
+export DOCKER_BUILDKIT=${DOCKER_BUILDKIT-1}
+export COMPOSE_DOCKER_CLI_BUILD=${COMPOSE_DOCKER_CLI_BUILD-1}
+export BUILDKIT_PROGRESS=${BUILDKIT_PROGRESS-plain}
 
 join_by() { local IFS="$1"; shift; echo "$*"; }
 
@@ -131,6 +142,12 @@ do_dcompose() {
     "$@"
 }
 
+#  dbcompose $@: wrapper to docker-compose with build compose files set
+do_dbcompose() {
+    set -- dvv $DCB "$@"
+    "$@"
+}
+
 #  psql $@: wrapper to psql interpreter
 do_psql() {
     cmd='$DC exec db bash -ec "PGUSER=\$POSTGRES_USER PGPASSWORD=\$PGPASSWD PGHOST=\$POSTGRES_HOST PGPORT=\$POSTGRES_PORT PGDATABASE=\$POSTGRES_DB psql'
@@ -186,7 +203,7 @@ do_duserexec() {
     _dexec "${container}" "$APP_USER" $@;
 }
 
-#  dexec $container  [$args]: exec command or make an interactive shell as root inside running \$APP_CONTAINER using docker exec
+#  dexec $container  [$args]: exec command or make an interactive shell as root inside running $APP_CONTAINER using docker exec
 #  ----
 do_dexec() {
     local container="${1-}";if [[ -n "${1-}" ]];then shift;fi
@@ -507,7 +524,7 @@ do_osx_sync() {
 do_main() {
     local args=${@:-usage}
     local actions="up_corpusops|shell|usage|install_docker|setup_corpusops|open_perms_valve"
-    actions="$actions|yamldump|stop|usershell|exec|userexec|dexec|duserexec|dcompose|ps|psql"
+    actions="$actions|yamldump|stop|usershell|exec|userexec|dexec|duserexec|dcompose|dbcompose|ps|psql"
     actions="$actions|init|up|fg|pull|build|buildimages|down|rm|run"
     actions="$actions|cypress_open|cypress_run|cypress_open_local|cypress_open_dev|cypress_run_local|cypress_run_dev"
     actions_symfony="osx_sync|server|tests|test|tests_debug|test_debug|coverage|linting|console|php"
