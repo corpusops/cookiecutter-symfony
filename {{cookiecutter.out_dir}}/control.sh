@@ -8,7 +8,7 @@
 
 set -e
 readlinkf() {
-    if ( uname | egrep -iq "darwin|bsd" );then
+    if ( uname | grep -E -iq "darwin|bsd" );then
         if ( which greadlink 2>&1 >/dev/null );then
             greadlink -f "$@"
         elif ( which perl 2>&1 >/dev/null );then
@@ -36,13 +36,13 @@ source_envs() {
             while read vardef;do
                 var="$(echo "$vardef" | awk -F= '{print $1}')"
                 val="$(echo "$vardef" | awk '{gsub(/^[^=]+=/, "");print;}')"
-                if ( echo "$val" | egrep -q "'" )  || ! ( echo "$val" | egrep -q '"' ) ;then
+                if ( echo "$val" | grep -E -q "'" )  || ! ( echo "$val" | grep -E -q '"' ) ;then
                     eval "$var=\"$val\""
                 else
                     eval "$var='$val'"
                 fi
             done < <( \
-                cat $i| egrep -v "^\s*#" | egrep "^([a-zA-Z0-9_]+)=" )
+                cat $i| grep -E -v "^\s*#" | grep -E "^([a-zA-Z0-9_]+)=" )
         fi
     done
     set +o allexport
@@ -117,7 +117,7 @@ _shell() {
     local SHELL_USER=${user-${SHELL_USER}}
     local run_mode_args=""
     local initsh=""
-    if ( echo $container |egrep -q "$APP_CONTAINERS" );then
+    if ( echo $container |grep -E -q "$APP_CONTAINERS" );then
         local initsh="/init.sh"
     fi
     if [[ "$run_mode" == "run" ]];then

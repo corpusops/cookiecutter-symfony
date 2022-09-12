@@ -81,7 +81,7 @@ if [ ! -e "{{cookiecutter.deploy_project_dir}}/.git" ];then
   && git fetch origin && git reset --hard origin/{DEPLOY_BR} )
 """.format(**locals())
 EGITSCRIPT = """
-sed="sed";if (uname | egrep -iq "darwin|bsd");then sed="gsed";fi
+sed="sed";if (uname | grep -E -iq "darwin|bsd");then sed="gsed";fi
 if !($sed --version);then echo $sed not avalaible;exit 1;fi
 {%raw%}vv() {{ echo "$@">&2;"$@"; }}{%endraw%}
 {% for i in ['dev', 'prod', 'qa', 'preprod', 'staging'] -%}
@@ -107,7 +107,7 @@ set +x
 {% if not cookiecutter.use_submodule_for_deploy_code %}
 
 while read f;do
-    if ( egrep -q "local/{{cookiecutter.app_type}}" "$f" );then
+    if ( grep -E -q "local/{{cookiecutter.app_type}}" "$f" );then
         echo "rewrite: $f"
         vv $sed -i -r \
         -e "s|local/{{cookiecutter.app_type}}/||g" \
@@ -116,7 +116,7 @@ while read f;do
         -e "/ADD\s*\/code\/$/d" \
         "$f"
     fi
-done < <( find -type f|egrep -v "((^./(\.tox|\.git|local))|/static/)"; )
+done < <( find -type f|grep -E -v "((^./(\.tox|\.git|local))|/static/)"; )
 {% endif %}
 set -x
         """
