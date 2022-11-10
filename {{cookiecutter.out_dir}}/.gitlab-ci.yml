@@ -874,8 +874,8 @@ manual_teardown_images: &teardown_images
         export A_ENV_NAME=dev
         export RELEASED_DOCKER_IMAGE=$LATEST_DOCKER_IMAGE
       else
-        export A_ENV_NAME=$CI_COMMIT_REF_NAME
-        export RELEASED_DOCKER_IMAGE=$TAGGUED_DOCKER_IMAGE
+        export A_ENV_NAME=${A_ENV_NAME:-${CI_COMMIT_REF_NAME}}
+        export RELEASED_DOCKER_IMAGE=$REF_DOCKER_IMAGE
       fi
 {%-if cookiecutter.use_submodule_for_deploy_code%}
   - *pullsubmodules
