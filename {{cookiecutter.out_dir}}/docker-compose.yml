@@ -10,7 +10,7 @@ x-images:
       SYMFONY_NAME: "${SYMFONY_NAME-{{cookiecutter.symfony_project_name}}}"
       NGINX_SERVERNAME: "${NGINX_SERVERNAME-{{cookiecutter.local_domain}}}"
       NGINX_SERVER_ALIASES: "${NGINX_SERVER_ALIASES-www.{{cookiecutter.local_domain}}}"
-      {% if 'post' in cookiecutter.db_mode %}
+{%- if 'post' in cookiecutter.db_mode %}
       POSTGRES_STARTUP_TIMEOUT: "${POSTGRES_STARTUP_TIMEOUT-45s}"
       POSTGRES_HOST: "${POSTGRES_HOST-db}"
       POSTGRES_PORT: "${POSTGRES_PORT-5432}"
@@ -20,20 +20,21 @@ x-images:
       PGPASSWD: "${POSTGRES_PASSWORD-password}"
       PGPASSWORD: "${POSTGRES_PASSWORD-password}"
       DATABASE_URL: "${DATABASE_URL-pgsql://user:password@db:5432/db}"
-      {% elif 'mysql' in cookiecutter.db_mode %}
+{%- elif cookiecutter.db_mode.startswith('m') %}
       MYSQL_HOST: "${MYSQL_HOST-db}"
       MYSQL_PORT: "${MYSQL_PORT-3306}"
       MYSQL_DATABASE: "${MYSQL_DATABASE-db}"
       MYSQL_USER: "${MYSQL_USER-user}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD-${MYSQL_PASSWORD-password}}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD-password}"
       DATABASE_URL: "${DATABASE_URL-mysql://user:password@db:3306/db}"
-      {% else %}
+{%- else %}
       DB_HOST: "${DB_HOST-db}"
-      DB_PORT: "${DB_PORT-}"
+      DB_PORT: "${DB_PORT-{{cookiecutter.db_port}}}"
       DB_NAME: "${DB_NAME-db}"
       DB_USER: "${DB_USER-user}"
       DB_PASSWORD: "${DB_PASSWORD-password}"
-      {% endif %}
+{%- endif %}
       COOKIE_DOMAIN: "${COOKIE_DOMAIN-{{cookiecutter.local_domain}}}"
       ABSOLUTE_URL_SCHEME: "${ABSOLUTE_URL_SCHEME-http{%if cookiecutter.ssl_in_dev %}s{%endif%}}"
       ABSOLUTE_URL_DOMAIN: "${ABSOLUTE_URL_DOMAIN-{{cookiecutter.local_domain}}}"
@@ -60,7 +61,9 @@ x-images:
     depends_on:
     - db
     - setup-{{db_tag}}
-    {%if cookiecutter.with_redis%}- redis{%endif%}
+{%-if cookiecutter.with_redis%}
+		- redis
+{%-endif%}
     working_dir: /code/app
     command:
     - /bin/sh
@@ -103,19 +106,23 @@ services:
       && pw=$$(MH_AUTH_FILE="" MailHog bcrypt "$${MAILCATCHER_PASSWORD:-mailcatcher}")
       && echo "$${MAILCATCHER_USER:-mailcatcher}:$$pw" > $$MH_AUTH_FILE
       && su mailhog -p -c MailHog
-  {%if cookiecutter.with_redis%}
+{%-if cookiecutter.with_redis%}
   redis:
     <<: [ *env ]
     image: "{{cookiecutter.redis_image}}"
     hostname: redis
     volumes:
     - 'redis:/data'
-  {%endif%}
+{%-endif%}
   db:
     <<: [ *env ]
     image: "{{cookiecutter["{0}_image".format(cookiecutter.db_mode)]}}"
     volumes:
+{%- if cookiecutter.db_mode.startswith('post') %}
     - postgresql:/var/lib/postgresql/data
+{%- elif cookiecutter.db_mode.startswith('m') %}
+    - mysql:/var/lib/mysql
+{%-endif %}
   nginx:
     <<: [ *env ]
     image: "{{cookiecutter.nginx_image}}"
@@ -155,7 +162,7 @@ services:
       SUPERVISORD_CONFIGS: cron nginx rsyslog
   {{cookiecutter.app_type}}:
     <<: [ *{{cookiecutter.app_type}} ]
-  {%- if cookiecutter.with_supervisor %}
+{%- if cookiecutter.with_supervisor %}
   {{cookiecutter.app_type}}-supervisor:
     <<: [ *{{cookiecutter.app_type}} ]
     environment:
@@ -166,8 +173,8 @@ services:
       NO_COLLECT_STATIC: 1
     depends_on:
     - {{cookiecutter.app_type}}
-  {%-endif%}
-  {%- if not cookiecutter.remove_cron %}
+{%-endif%}
+{%- if not cookiecutter.remove_cron %}
   cron:
     <<: [ *{{cookiecutter.app_type}} ]
     environment:
@@ -175,17 +182,41 @@ services:
       IMAGE_MODE: cron
     depends_on:
     - {{cookiecutter.app_type}}
-  {% endif %}
+{% endif %}
   backup:
     <<: [ *env ]
-    image: "corpusops/dbsmartbackup:postgres-10"
+    image: "{{cookiecutter.dbsmartbackup_image}}"
     restart: always
     volumes:
       - backupdb-dumps:/var/db_smart_backup/
       - backupdb-logs:/var/db_smart_backup/logs/
-{% if db_tag == 'postgres' %}  setup-postgres:
+{%- if db_tag.startswith('m') %}
+  setup-mysql:
     <<: [ *env ]
-    image: "corpusops/postgres:10"
+    image: "{{cookiecutter.mysql_image}}"
+    depends_on:
+    - db
+    entrypoint:
+    - /bin/sh
+    - '-c'
+    - |-
+      set -ex
+      MYSQL_STARTUP_TIMEOUT=$${MYSQL_STARTUP_TIMEOUT-45s}
+      flag=/started_$$(echo $$MYSQL_DB|sed -re "s![/:]!__!g")
+      if [ -e "$$flag" ];then rm -f "$$flag";fi
+      echo "Try connection to mysql: $$MYSQL_DB & wait for db init" >&2 \
+      && ( while true;do if ( \
+        echo "select 1;"\
+        | mysql --user="$$MYSQL_USER" --password="$$MYSQL_PASSWORD" --host="$$MYSQL_HOST" \
+           "$$MYSQL_DB"\
+      );then touch $$flag && break;fi;done )&
+      set -x \
+      && dockerize -wait file://$$flag -timeout 45s \
+      && while true;do printf "HTTP/1.1 200 OK\n\nstarted"| ( nc -l -p 80 || /bin/true);done
+{%- elif db_tag.startswith('post') %}
+  setup-postgres:
+    <<: [ *env ]
+    image: "{{cookiecutter.postgres_image}}"
     depends_on:
     - db
     entrypoint:
@@ -205,12 +236,18 @@ services:
       set -x \
       && dockerize -wait file://$$flag -timeout 45s \
       && while true;do printf "HTTP/1.1 200 OK\n\nstarted"| ( nc -l -p 80 || /bin/true);done
-{% endif %}
+{%- endif %}
 volumes:
   backupdb-logs:
   backupdb-dumps:
+{%- if 'post' in cookiecutter.db_mode %}
   postgresql:
-  {%if cookiecutter.with_redis%}redis:{%endif%}
+{%- elif cookiecutter.db_mode.startswith('m') %}
+  mysql:
+{%- endif %}
+{%-if cookiecutter.with_redis%}
+  redis:
+{%-endif%}
   nginx-certs:
   webroot:
   publiccontrib:
