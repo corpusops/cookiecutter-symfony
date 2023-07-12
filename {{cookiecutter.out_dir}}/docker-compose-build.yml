@@ -4,18 +4,32 @@ x-images:
   {{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
     build:
       context: "."
-      args:
-        PHP_VER: "${SYMFONY_PHP_VER:-{{cookiecutter.php_ver}}}"
-        PHP_VER_NO_DOT: "${SYMFONY_PHP_VER_NO_DOT:-{{cookiecutter.php_ver.replace('.', '') }}}"
+      args: &args
+        BUILDKIT_INLINE_CACHE: "1"
+        BASE: "${SYMFONY_BASE_IMAGE:-{{cookiecutter.base_image}}}"
+        PHP_VER: "${PHP_VER:-{{cookiecutter.php_ver}}}"
+        PHP_VER: "${PHP_VER:-{{cookiecutter.php_ver}}}"
+        PHP_GROUP: "${PHP_GROUP-{{cookiecutter.php_group}}}"
+        PHP_VER_NO_DOT: "${PHP_VER_NO_DOT:-{{cookiecutter.php_ver.replace('.', '') }}}"
         COMPOSER_VERSION: "${COMPOSER_VERSION:-{{cookiecutter.composer_ver}}}"
 services:
-  {%- if not cookiecutter.remove_cron %}
+{%-if not cookiecutter.remove_doc%}
+  docs:
+    <<: [ *env, *{{cookiecutter.app_type}} ]
+    image: "${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE}:${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}-docsbuilder"
+    build: {args: {<<: [ *args ], PY_VER: "${PY_VER:-3.8}", BASE: "${DOCS_IMAGE_BASE:-{{cookiecutter.ubuntu_image}}}"}, context: ".", dockerfile: "Dockerfile-docs"}
+    volumes:
+    - ./docs:/code/docs.host
+    - ./app:/code/app.host
+    - ./local:/code/local
+{%-endif%}
+{%- if not cookiecutter.remove_cron %}
   cron: {<<: [ *{{cookiecutter.app_type}} ]}
-  {%-endif%}
+{%-endif%}
   {{cookiecutter.app_type}}: {<<: [ *{{cookiecutter.app_type}} ]}
-  {%- if cookiecutter.with_supervisor %}
+{%- if cookiecutter.with_supervisor %}
   {{cookiecutter.app_type}}-supervisor: {<<: [ *{{cookiecutter.app_type}} ]}
-  {%-endif%}
+{%-endif%}
   cypress:
     <<: [ *env ]
     image: cypress

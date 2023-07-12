@@ -148,7 +148,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, '{{ cookiecutter.name }}, '{{ cookiecutter.name }} Documentation',
+    (master_doc, '{{ cookiecutter.name }}', '{{ cookiecutter.name }} Documentation',
      author, '{{ cookiecutter.name }}', 'One line description of project.',
      'Miscellaneous'),
 ]

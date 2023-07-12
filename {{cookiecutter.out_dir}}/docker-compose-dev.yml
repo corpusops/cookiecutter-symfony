@@ -7,32 +7,25 @@ x-images:
     environment: &{{cookiecutter.app_type}}_env
       APP_ENV: "${APP_ENV-dev}"
       APP_SECRET: "${APP_SECRET-11111111111111111111111111111111}"
-      PHP_DISPLAY_ERROR: 1
-      NO_MIGRATE: "1"
-      NO_COLLECT_STATIC: "1"
-      NO_CACHE_CLEAR: "1"
-      NO_COMPOSER: "1"
+      PHP_DISPLAY_ERROR: "${PHP_DISPLAY_ERROR-1}"
+      NO_MIGRATE: "${NO_MIGRATE-1}"
+      NO_COLLECT_STATIC: "${NO_COLLECT_STATIC-1}"
+      NO_CACHE_CLEAR: "${NO_CACHE_CLEAR-1}"
+      NO_COMPOSER: "${NO_COMPOSER-1}"
+      # Resolve Docker mac problems
+      # NO_FIXPERMS: "1"
+      # if you need to debug the docker init uncomment the next 2 lines
+      # SDEBUG: "1"
+      # NO_STARTUP_LOGS: ""
     volumes: &{{cookiecutter.app_type}}_volumes
-    #- ./local/symfony-deploy-common/sys/sudoer:/etc/sudoers.d/${APP_TYPE:-symfony}
-    - ./sys/sbin:/code/sys/sbin/
-    - ./sys/sbin:/code/sbin/
     {%-if cookiecutter.use_submodule_for_deploy_code %}
-    - ./local/symfony-deploy-common/sys/init.sh:/code/sys/init.sh
     - ./local/symfony-deploy-common/sys/init.sh:/code/init/init.sh
-    - ./local/symfony-deploy-common/sys/sbin/composerinstall.sh:/code/init/sbin/composerinstall.sh
-    - ./local/symfony-deploy-common/sys/sbin/composer.sh:/code/init/sbin/composer.sh
-    - ./local/symfony-deploy-common/sys/etc/supervisor.d:/code/sys/etc/supervisor.d
-    - ./local/symfony-deploy-common/sys/etc/php-fpm.d:/code/sys/etc/php-fpm.d
     - ./local/symfony-deploy-common:/code/local/symfony-deploy-common
     {%- else%}
-    - ./sys/init.sh:/code/sys/init.sh
     - ./sys/init.sh:/code/init/init.sh
-    - ./sys/sbin/composerinstall.sh:/code/init/sbin/composerinstall.sh
-    - ./sys/sbin/composer.sh:/code/init/sbin/composer.sh
-    - ./sys/etc/supervisor.d:/code/sys/etc/supervisor.d
-    - ./sys/etc/php-fpm.d:/code/sys/etc/php-fpm.d
     - ./:/code/local/symfony-deploy-common
     {%- endif%}
+    - ./sys:/code/sys
     - ./local:/code/local
     - ./app:/code/app
     # remount public/private (named volumes on prod, local remount on dev)
@@ -41,7 +34,7 @@ x-images:
     - ./app/public/bundles:/code/app/public/bundles
     - ./app/private:/code/app/private
     - ./app/var/cache:/code/app/var/cache
-    # Pour la documentation, parce qu'une commande symfony peut générer du rst
+    # For documentation as symfony can generate rst
     - ./docs:/code/app/docs
 services:
   db:
@@ -49,15 +42,19 @@ services:
     - "${SYMFONY_DB_LISTEN:-0.0.0.0}:${SYMFONY_DB_PORT:-{{ cookiecutter.local_direct_db_port }}}:{{cookiecutter.db_port}}"
   nginx:
     environment:
+      <<: [ *{{cookiecutter.app_type}}_env ]
       NO_SSL: "{%if not cookiecutter.ssl_in_dev%}1{%else%}0{%endif%}"
-      NO_FORCE_SSL: "1"
+      NO_FORCE_SSL: "{%if not cookiecutter.ssl_in_dev%}1{%endif%}"
+      NGINX_PORT: "${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_http_port}}}"
+      NGINX_SSL_PORT: "${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}"
     ports:
-      - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTP_PORT:-{{cookiecutter.local_http_port}}}:80"
-      - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}:443"
+      - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTP_PORT:-{{cookiecutter.local_http_port}}}:${SYMFONY_HTTP_PORT:-{{cookiecutter.local_http_port}}}"
+      - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}"
     volumes:
     # remount public/private (named volumes on prod, local remount on dev)
     # on /code/app/public/files and /code/app/private
     - ./app/public/:/code/app/public
+    - ./app/public/bundles:/code/app/public/bundles:ro
     - ./app/public/files:/code/app/public/files:ro
     - ./app/private:/code/app/private:ro
   backup: {<<: [ *bypass ]}
@@ -71,9 +68,9 @@ services:
     environment:
       <<: [ *{{cookiecutter.app_type}}_env ]
       IMAGE_MODE: phpfpm
-      PHP_XDEBUG_REMOTE: 1
-      PHP_XDEBUG_IP: host.docker.internal
-      PHP_XDEBUG_PORT: 9000
+      PHP_XDEBUG_REMOTE: "${PHP_XDEBUG_REMOTE-1}"
+      PHP_XDEBUG_IP: "${PHP_XDEBUG_IP-host.docker.internal}"
+      PHP_XDEBUG_PORT: "${PHP_XDEBUG_PORT-9000}"
 {%- if cookiecutter.with_supervisor %}
   {{cookiecutter.app_type}}-supervisor:
     <<: [ *{{cookiecutter.app_type}} ]

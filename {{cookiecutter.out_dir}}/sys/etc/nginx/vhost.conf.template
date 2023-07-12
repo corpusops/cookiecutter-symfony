@@ -13,6 +13,8 @@
 {{'{{-'}} end }}
 {{'{{-'}} $v := merge $v ( dict "nostatics"                   ( .Env.NO_STATICS | default "" )                                               ) }}
 {{'{{-'}} $v := merge $v ( dict "server_name"                 ( .Env.NGINX_SERVERNAME | default "localhost" )                                ) }}
+{{'{{-'}} $v := merge $v ( dict "port"                        ( .Env.NGINX_PORT | default "80" )                                             ) }}
+{{'{{-'}} $v := merge $v ( dict "ssl_port"                    ( .Env.NGINX_SSL_PORT | default "443" )                                        ) }}
 {{'{{-'}} $v := merge $v ( dict "server_aliases"              ( .Env.NGINX_SERVER_ALIASES | default "" )                                     ) }}
 {{'{{-'}} $v := merge $v ( dict "server_name_in_redirect"     ( .Env.NGINX_SERVERNAME_IN_REDIRECT | default "on" )                           ) }}
 {{'{{-'}} $v := merge $v ( dict "server_name_in_redirect_ssl" ( .Env.NGINX_SERVERNAME_IN_REDIRECT_SSL | default $v.server_name_in_redirect ) ) }}
@@ -61,10 +63,10 @@ map $forwarded_ssl_scheme $http_x_ssl_resolved {default 0; https 1;}
 # but also force it to true when we are forced
 # to be on ssl via X-SSL/X-FORWARDED-PROTO
 map $forwarded_ssl_scheme $fastcgi_ssl_toggle                 {default $https;https on;}
-map $http_x_ssl_resolved  $forwarded_remote_server_port       {default $remote_port;1 443;}
-map $http_x_ssl_resolved  $forwarded_static_server_port       {default 80;1 443;}
-map $http_x_ssl_resolved  $forwarded_server_port              {default $server_port;1 443;}
-map $http_x_ssl_resolved  $forwarded_server_port              {default $server_port;1 443;}
+map $http_x_ssl_resolved  $forwarded_remote_server_port       {default $remote_port;1 {{'{{'}}$v.ssl_port}};}
+map $http_x_ssl_resolved  $forwarded_static_server_port       {default {{'{{'}}$v.port}}; 1 {{'{{'}}$v.ssl_port}};}
+map $http_x_ssl_resolved  $forwarded_server_port              {default $server_port;1 {{'{{'}}$v.ssl_port}};}
+map $http_x_ssl_resolved  $forwarded_server_port              {default $server_port;1 {{'{{'}}$v.ssl_port}};}
 map $http_x_ssl_resolved  $http_x_forwarded_protocol_resolved {default tcp;1 ssl;}
 map $http_x_ssl_resolved  $http_x_forwarded_ssl_resolved      {default off;1 on;}
 map $http_x_ssl_resolved  $http_x_forwarded_proto_resolved    {default http;1 https;}
@@ -91,7 +93,7 @@ server_tokens off;
 {{'{{'}} end }}
 
 server {
-    listen 80;
+    listen {{'{{'}}$v.port}};
 
     server_name {{'{{'}} $v.server_name }}{{'{{'}}if $v.server_aliases }}{{'{{'}}$v.server_aliases}}{{'{{'}}end}};
     server_name_in_redirect {{'{{'}} $v.server_name_in_redirect }};
@@ -283,7 +285,7 @@ server {
 {{'{{'}} if ne $v.nossl "1" }}
 
 server {
-    listen 443 ssl;
+    listen {{'{{'}}$v.ssl_port}} ssl;
     ssl on;
     server_name_in_redirect {{'{{'}} $v.server_name_in_redirect_ssl }};
     server_name             {{'{{'}} $v.server_name }}{{'{{'}}if $v.server_aliases }}{{'{{'}}$v.server_aliases}}{{'{{'}}end}};

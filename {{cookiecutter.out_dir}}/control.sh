@@ -154,6 +154,15 @@ do_dbcompose() {
     ( export COMPOSE_FILE="$COMPOSE_FILE_BUILD" && "$@" )
 }
 
+#  mysql $@: wrapper to mysql interpreter
+do_mysql() {
+    set -x
+    cmd='do_dcompose exec db sh -ec "mysql --password=\$MYSQL_PASSWORD --user=\$MYSQL_USER \$MYSQL_DATABASE'
+    cli=( "$@" )
+    for var in "${cli[@]}";do cmd="$cmd $(printf %q "$var")";done
+    eval $cmd'"'
+}
+
 #  psql $@: wrapper to psql interpreter
 do_psql() {
     cmd='do_dcompose exec db bash -ec "PGUSER=\$POSTGRES_USER PGPASSWORD=\$PGPASSWD PGHOST=\$POSTGRES_HOST PGPORT=\$POSTGRES_PORT PGDATABASE=\$POSTGRES_DB psql'
@@ -527,13 +536,33 @@ do_osx_sync() {
             && read do_resync;done"
 }
 
+#  [NO_BUILD=] do_make_docs: daemon to sync local files inside docker containers (volumes to be exact)
+do_make_docs() {
+    if [[ -z ${NO_BUILD-} ]];then do_dbcompose build docs;fi
+    # by default container entrypoint sync data to output dir
+    do_dbcompose run --rm \
+        -e NO_BUILD=${NO_BUILD-} \
+        -e NO_INIT=${NO_HTML-} \
+        -e NO_CLEAN=${NO_CLEAN-} \
+        -e HOST_USER_UID=$(id -u) \
+        -e SOURCEDIR=${SOURCEDIR-} \
+        -e BUILDDIR=${BUILDDIR-} \
+        -e DEBUG=${DEBUG-} \
+        docs "$@"
+}
+
+#  doc: generate documentation
+do_doc() {
+    do_make_docs "$@"
+}
+
 do_main() {
     local args=${@:-usage}
     local actions="up_corpusops|shell|usage|install_docker|setup_corpusops|open_perms_valve"
-    actions="$actions|yamldump|stop|usershell|exec|userexec|dexec|duserexec|dcompose|dbcompose|ps|psql"
+    actions="$actions|yamldump|stop|usershell|exec|userexec|dexec|duserexec|dcompose|dbcompose|ps|psql|mysql"
     actions="$actions|init|up|fg|pull|build|buildimages|down|rm|run"
     actions="$actions|cypress_open|cypress_run|cypress_open_local|cypress_open_dev|cypress_run_local|cypress_run_dev"
-    actions_symfony="osx_sync|server|tests|test|tests_debug|test_debug|coverage|linting|console|php"
+    actions_symfony="osx_sync|server|tests|test|tests_debug|test_debug|coverage|linting|console|php|make_docs|doc"
     actions="@($actions|$actions_symfony)"
     action=${1-}
     if [[ -n $@ ]];then shift;fi

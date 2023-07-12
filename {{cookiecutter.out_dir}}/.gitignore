@@ -70,4 +70,8 @@ yarn-error.log
 
 #System Files
 .DS_Store
-app/bin/composer*
+
+/app/bin/base.sh
+/app/bin/composer*
+/app/var/log/
+/app/var/docs/

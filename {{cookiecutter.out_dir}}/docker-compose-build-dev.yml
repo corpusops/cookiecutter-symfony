@@ -3,10 +3,13 @@ x-images:
   {{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
     build: {context: ".", args: {BUILD_DEV: "y"}}
 services:
-  {%- if not cookiecutter.remove_cron %}
+{%- if not cookiecutter.remove_doc %}
+  docs: {<<: [ *{{cookiecutter.app_type}} ]}
+{%- endif %}
+{%- if not cookiecutter.remove_cron %}
   cron: {<<: [ *{{cookiecutter.app_type}} ]}
-  {%-endif%}
+{%-endif%}
   {{cookiecutter.app_type}}: {<<: [ *{{cookiecutter.app_type}} ]}
-  {%- if cookiecutter.with_supervisor %}
+{%- if cookiecutter.with_supervisor %}
   {{cookiecutter.app_type}}-supervisor: {<<: [ *{{cookiecutter.app_type}} ]}
-  {%-endif%}
+x{%-endif%}

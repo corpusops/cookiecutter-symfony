@@ -5,24 +5,27 @@ All following commands must be run only once at project installation.
 ## TL;LR
 ```bash
 git clone --recursive {{cookiecutter.git_project_url}} # choose between ssh and http
-{%if cookiecutter.use_submodule_for_deploy_code-%}cd {{cookiecutter.git_project}}
+{%-if cookiecutter.use_submodule_for_deploy_code-%}
+cd {{cookiecutter.git_project}}
 git submodule init # only the fist time
-git submodule update --recursive{%endif%}
+git submodule update --recursive
+{%-endif%}
 ./control.sh init
 ./control.sh build
  # start db
 ./control.sh up db
 ./control.sh dcompose logs db # verify ok & <C-C>
-./control.sh up --no-deps setup-mysql
-./control.sh dcompose logs setup-db # verify ok & <C-C>
+./control.sh up --no-deps setup-{{cookiecutter.db_mode}}
+./control.sh dcompose logs setup-{{cookiecutter.db_mode}} # verify ok & <C-C>
 # get & load dump or init db
 # bootstrap local dev symfony setup
 ./control.sh up --no-deps mailcatcher symfony
 ./control.sh userexec bin/composerinstall
 ./control.sh up --no-deps --force-recreate symfony symfony-supervisor
+/control.sh userexec bin/console assets:install
 # add site to /etc/hosts
 sudo sed  -i -re "/{{cookiecutter.local_domain }}/ d;$ a 127.0.0.1 {{cookiecutter.local_domain}}" /etc/hosts
-./control.sh up --force-recreate nginx
+./control.sh up --force-recreate --no-deps nginx
 ./control.sh dcompose logs -f nginx # & wait to see
   nginx_1               | nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
   nginx_1               | nginx: configuration file /etc/nginx/nginx.conf test is successful
@@ -33,9 +36,10 @@ sudo sed  -i -re "/{{cookiecutter.local_domain }}/ d;$ a 127.0.0.1 {{cookiecutte
 
 ```bash
 git clone --recursive {{cookiecutter.git_project_url}} # choose between ssh and http
-{%if cookiecutter.use_submodule_for_deploy_code-%}cd {{cookiecutter.git_project}}
+{%-if cookiecutter.use_submodule_for_deploy_code-%}cd {{cookiecutter.git_project}}
 git submodule init # only the fist time
-git submodule update --recursive{%endif%}
+git submodule update --recursive
+{%-endif%}
 ```
 
 ## Before using any ansible command: a note on sudo

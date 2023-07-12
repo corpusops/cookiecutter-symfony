@@ -36,8 +36,6 @@ services:
 {%-endif%}
   db:
     restart: unless-stopped
-  backup:
-    restart: unless-stopped
 {%- if cookiecutter.db_mode.startswith('post') %}
   setup-postgres:
 {%- elif cookiecutter.db_mode.startswith('m') %}
