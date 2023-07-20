@@ -18,6 +18,7 @@ make
 libxslt-1.1
 {% if 'post' in cookiecutter.db_mode %}postgresql{{ cookiecutter.db_version }}{% endif %}
 {% if 'mysql' in cookiecutter.db_mode %}mysql{{ cookiecutter.db_version }}{% endif %}
+logrotate
 unzip
 autoconf
 automake
@@ -25,8 +26,6 @@ groff
 libtool
 m4
 poppler-utils
-python-imaging
-python-setuptools
 vim
 lsof
 php
@@ -60,11 +59,11 @@ php-process
 php-soap
 php-sodium
 # php-suhosin
-# php-symfony-common
-# php-symfony-yaml
 php-xml
 php-xmlrpc
 php-xdebug
 supervisor
 openssl
 rsync
+patch
+# dev deps are there but as in drupal in dev mode we need those tools to run composer, we cant strip them from the final image
