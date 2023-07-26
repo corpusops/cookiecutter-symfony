@@ -3,6 +3,10 @@
 .settings
 coverage
 
+# User upload folders
+/public/media
+/public/uploads
+
 # Test environment files upload directory
 public/test
 
