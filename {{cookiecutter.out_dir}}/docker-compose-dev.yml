@@ -48,8 +48,10 @@ services:
       NGINX_PORT: "${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_http_port}}}"
       NGINX_SSL_PORT: "${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}"
     ports:
-      - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTP_PORT:-{{cookiecutter.local_http_port}}}:${SYMFONY_HTTP_PORT:-{{cookiecutter.local_http_port}}}"
-      - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}"
+    - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTP_PORT:-{{cookiecutter.local_http_port}}}:${SYMFONY_HTTP_PORT:-{{cookiecutter.local_http_port}}}"
+{%-if cookiecutter.ssl_in_dev %}
+    - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}"
+{%- endif %}
     volumes:
     # remount public/private (named volumes on prod, local remount on dev)
     # on /code/app/public/files and /code/app/private
@@ -60,8 +62,7 @@ services:
   backup: {<<: [ *bypass ]}
 {%- if not cookiecutter.remove_cron %}
   cron:
-    <<: [ *bypass ]
-    <<: [ *{{cookiecutter.app_type}} ]
+    <<: [ *bypass, *{{cookiecutter.app_type}} ]
 {%- endif %}
   {{cookiecutter.app_type}}:
     <<: [ *{{cookiecutter.app_type}} ]

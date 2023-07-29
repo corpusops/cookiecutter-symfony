@@ -73,7 +73,6 @@ x-images:
       && echo "launching init.sh"
       && /init.sh
     volumes:
-    # - ./sys/crontab:/etc/cron.d/symfony # nope -> chown root done on that file, prefer a COPY, or a template
     - logs:/logs/
     - publiccontrib:/code/app/public/files
     - publicbundles:/code/app/public/bundles
@@ -160,6 +159,8 @@ services:
     environment:
       <<: [ *env_vars ]
       SUPERVISORD_CONFIGS: cron nginx rsyslog
+      NO_SSL: "0"
+      NO_FORCE_SSL: "0"
   {{cookiecutter.app_type}}:
     <<: [ *{{cookiecutter.app_type}} ]
 {%- if cookiecutter.with_supervisor %}
