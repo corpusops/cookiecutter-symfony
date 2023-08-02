@@ -37,6 +37,10 @@ services:
   db:
     restart: unless-stopped
 {%- if cookiecutter.db_mode.startswith('post') %}
+    environment:
+      POSTGRES_MAX_CONNECTIONS: "${POSTGRES_MAX_CONNECTIONS:-100}"
+{%- endif %}
+{%- if cookiecutter.db_mode.startswith('post') %}
   setup-postgres:
 {%- elif cookiecutter.db_mode.startswith('m') %}
   setup-mysql:

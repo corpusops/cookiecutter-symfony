@@ -12,4 +12,4 @@ services:
   {{cookiecutter.app_type}}: {<<: [ *{{cookiecutter.app_type}} ]}
 {%- if cookiecutter.with_supervisor %}
   {{cookiecutter.app_type}}-supervisor: {<<: [ *{{cookiecutter.app_type}} ]}
-x{%-endif%}
+{%-endif%}

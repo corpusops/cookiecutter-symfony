@@ -6,7 +6,7 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 # let builddir be overriden in docker mode
 SOURCEDIR     ?= .
-BUILDDIR      ?= ../app/var/docs
+BUILDDIR      ?= ../{{cookiecutter.docs_folder}}
 
 # Put it first so that "make" without argument is like "make help".
 help:

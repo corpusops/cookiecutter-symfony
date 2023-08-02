@@ -33,6 +33,7 @@ SYMLINKS_FILES = {
     ".ansible/scripts/print_env.sh": "call_ansible.sh",  #noqa
     ".ansible/scripts/setup_ansible.sh": "cops_wrapper.sh",  #noqa
     ".ansible/playbooks/ping.yml": "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/ping.yml",  #noqa
+    ".ansible/playbooks/haproxy.yml": "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/haproxy.yml",  #noqa
     ".ansible/playbooks/backup.yml": "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/backup.yml",  #noqa
     ".ansible/playbooks/delivery.yml": "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/delivery.yml",  #noqa
     ".ansible/playbooks/app.yml": "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/app.yml",  #noqa

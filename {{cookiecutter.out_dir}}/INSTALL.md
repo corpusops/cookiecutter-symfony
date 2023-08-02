@@ -22,7 +22,11 @@ git submodule update --recursive
 ./control.sh up --no-deps mailcatcher symfony
 ./control.sh userexec bin/composerinstall
 ./control.sh up --no-deps --force-recreate symfony symfony-supervisor
-/control.sh userexec bin/console assets:install
+# init db
+./control.sh console doctrine:migrations:migrate --no-interaction --allow-no-migration
+# or load a dump with
+# cat local/dump.sql|./control.sh dcompose exec -T db sh -ec 'mysql --password=$MYSQL_PASSWORD --user=$MYSQL_USER $MYSQL_DATABASE'
+./control.sh userexec bin/console assets:install
 # add site to /etc/hosts
 sudo sed  -i -re "/{{cookiecutter.local_domain }}/ d;$ a 127.0.0.1 {{cookiecutter.local_domain}}" /etc/hosts
 ./control.sh up --force-recreate --no-deps nginx
@@ -142,7 +146,7 @@ For example if you have:
 grep ABSOLUTE docker-compose.yml
   ABSOLUTE_URL_SCHEME=http
   ABSOLUTE_URL_DOMAIN={{cookiecutter.local_domain}}
-  ABSOLUTE_URL_PORT={{cookiecutter.local_http_port}}
+  ABSOLUTE_URL_PORT=:{{cookiecutter.local_http_port}}
 ```
 
 The project should be reached in http://{{cookiecutter.local_domain}}:{{cookiecutter.local_http_port}} and {{cookiecutter.local_domain}} must resolve to ``127.0.0.1``.
@@ -155,7 +159,7 @@ If you have:
 grep ABSOLUTE docker-compose.yml
   ABSOLUTE_URL_SCHEME=https
   ABSOLUTE_URL_DOMAIN={{cookiecutter.local_domain}}
-  ABSOLUTE_URL_PORT={{cookiecutter.local_https_port}}
+  ABSOLUTE_URL_PORT=:{{cookiecutter.local_https_port}}
 ```
 Then ``{{cookiecutter.local_domain}}`` stills need to resolve to ``127.0.0.1`` but the access will be <https://{{cookiecutter.local_domain}}:{{cookiecutter.local_https_port}}> .
 
@@ -170,7 +174,7 @@ ones:
 ```bash
 ./control.sh up
 ./control.sh userexec bin/composerinstall
-./control.sh console doctrine:migrations:migrate --allow-no-migration
+./control.sh console doctrine:migrations:migrate --no-interaction --allow-no-migration
 # or custom commands if they exist
 ./control.sh console system:database:install --reset --test-data
 ```
@@ -292,7 +296,7 @@ Once you have build once your image, you have two options to reuse your image as
 
     ```bash
     {{cookiecutter.app_type.upper()}}_BASE_IMAGE=a tag
-    # this <a_tag> will be done after issuing: docker tag registry.makina-corpus.net/mirabell/chanel:latest-dev a_tag
+    # this <a_tag> will be done after issuing: docker tag {{ cookiecutter.docker_image }}:latest-dev a_tag
     ```
 
 ## IDE
@@ -423,6 +427,6 @@ If you get the same problem with the {{cookiecutter.app_type}} docker env :
 docker-compose -f docker-compose.yml -f docker-compose-dev.yml stop {{cookiecutter.app_type}} db
 docker volume rm ICIUnNom-postgresql # check with docker volume ls
 docker-compose -f docker-compose.yml -f docker-compose-dev.yml up -d db
-# wait fot database stuff to be installed
+# wait for database stuff to be installed
 docker-compose -f docker-compose.yml -f docker-compose-dev.yml up {{cookiecutter.app_type}}
 ```

@@ -20,12 +20,13 @@ x-images:
       PGPASSWD: "${POSTGRES_PASSWORD-password}"
       PGPASSWORD: "${POSTGRES_PASSWORD-password}"
       DATABASE_URL: "${DATABASE_URL-pgsql://user:password@db:5432/db}"
+      DATABASE_URL_LOCK: "${DATABASE_URL_LOCK:-postgresql+advisory://user:password@db:5432/db}"
 {%- elif cookiecutter.db_mode.startswith('m') %}
       MYSQL_HOST: "${MYSQL_HOST-db}"
       MYSQL_PORT: "${MYSQL_PORT-3306}"
       MYSQL_DATABASE: "${MYSQL_DATABASE-db}"
       MYSQL_USER: "${MYSQL_USER-user}"
-      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD-${MYSQL_PASSWORD-password}}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-${MYSQL_PASSWORD:-password}}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD-password}"
       DATABASE_URL: "${DATABASE_URL-mysql://user:password@db:3306/db}"
 {%- else %}
@@ -38,10 +39,11 @@ x-images:
       COOKIE_DOMAIN: "${COOKIE_DOMAIN-{{cookiecutter.local_domain}}}"
       ABSOLUTE_URL_SCHEME: "${ABSOLUTE_URL_SCHEME-http{%if cookiecutter.ssl_in_dev %}s{%endif%}}"
       ABSOLUTE_URL_DOMAIN: "${ABSOLUTE_URL_DOMAIN-{{cookiecutter.local_domain}}}"
-      ABSOLUTE_URL_PORT: "${ABSOLUTE_URL_PORT-{%if cookiecutter.ssl_in_dev%}{{cookiecutter.local_https_port}}{% else %}{{cookiecutter.local_http_port}}{% endif %}}"
+      ABSOLUTE_URL_PORT: "${ABSOLUTE_URL_PORT-:{%if cookiecutter.ssl_in_dev%}{{cookiecutter.local_https_port}}{% else %}{{cookiecutter.local_http_port}}{% endif %}}"
       PHP_MAX_WORKERS: "${PHP_MAX_WORKERS-10}"
       PHP_MAX_SPARE_WORKERS: "${PHP_MAX_SPARE_WORKERS-5}"
       PHP_MIN_SPARE_WORKERS: "${PHP_MIN_SPARE_WORKERS-3}"
+      PHP_MEMORY_LIMIT: "${PHP_MEMORY_LIMIT:-128M}"
       # This need to be changed in productionc
       MAILCATCHER_USER: "${MAILCATCHER_USER-mailcatcher}"
       MAILCATCHER_PASSWORD: "${MAILCATCHER_PASSWORD-mailcatcher}"
@@ -116,8 +118,20 @@ services:
   db:
     <<: [ *env ]
     image: "{{cookiecutter["{0}_image".format(cookiecutter.db_mode)]}}"
-    volumes:
 {%- if cookiecutter.db_mode.startswith('post') %}
+    entrypoint:
+    - sh
+    - '-exc'
+    - |
+      docker-entrypoint.sh postgres -N $$POSTGRES_MAX_CONNECTIONS
+{%- endif %}
+    environment:
+      <<: [ *env_vars ]
+{%- if cookiecutter.db_mode.startswith('p') %}
+      POSTGRES_MAX_CONNECTIONS: "${POSTGRES_MAX_CONNECTIONS:-2000}"
+{%- endif %}
+    volumes:
+{%- if cookiecutter.db_mode.startswith('p') %}
     - postgresql:/var/lib/postgresql/data
 {%- elif cookiecutter.db_mode.startswith('m') %}
     - mysql:/var/lib/mysql

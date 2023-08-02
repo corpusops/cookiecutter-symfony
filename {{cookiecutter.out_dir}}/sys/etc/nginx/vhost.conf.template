@@ -169,7 +169,7 @@ server {
         rewrite ^(.*)$ /maintenance.html break;
     }
 
-    {{'{{'}} if .noforcessl }}# {{'{{'}} end }}if ($forwarded_ssl_scheme != "https"){ rewrite ^(.*)$ https://$host$1 permanent; }
+    {{'{{'}} if eq .noforcessl "1" }}# {{'{{'}} end }}if ($forwarded_ssl_scheme != "https"){rewrite ^(.*)$ https://${host}{{'{{'}} if ne .ssl_port "443" }}:{{'{{'}}.ssl_port}}{{'{{'}}end}}$1 permanent; }
 
     # static optimisations
     tcp_nodelay off;
@@ -189,7 +189,6 @@ server {
         add_header Cache-Control "public";
     }
     {{'{{'}} end }}
-    {{'{{'}} if eq .noforcessl "1"}}# {{'{{'}} end }}if ($forwarded_ssl_scheme != "https"){ rewrite ^(.*)$ https://$host$1 permanent; }
 
     location / {
 

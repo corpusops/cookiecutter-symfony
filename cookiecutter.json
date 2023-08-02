@@ -125,10 +125,16 @@
     "node_version": "14.18.0",
     "node_image": "corpusops/node",
     "corpusops_image": "corpusops/ubuntu:20.04",
-    "docs_folders": "app/var/doc*",
+    "docs_folder": "app/var/private/docs",
+    "docs_folders": "app/var/private/doc*",
     "statics_folders": "app/public/build app/public/bundles",
     "node_image_flavor": "-slim",
     "with_reset_stagingprod_jobs": "",
     "main_branch": "master",
-    "monitoring_network": "10.0.0.0/8"
+    "monitoring_network": "10.0.0.0/8",
+    "sphinx_theme": "sphinx_makina_theme",
+    "sphinx_theme_path": "",
+    "sphinx_copyright": "FIXME",
+    "sphinx_author": "FIXME",
+    "no_tags_pipelines": "y"
 }
