@@ -14,3 +14,4 @@ cops_{{cookiecutter.app_type}}_dotenv_extra: |-
   {% if 'post' in cookiecutter.db_mode %}POSTGRES_STARTUP_TIMEOUT={{'{{'}}cops_{{cookiecutter.app_type}}_postgres_startup_timeout}}{% endif %}
 cops_symfony_http_protect_user: "root"
 cops_symfony_http_protect_password: "rootroot"
+cops_symfony_php_memory_limit: "{{cookiecutter.php_memory_limit}}"

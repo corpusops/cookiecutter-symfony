@@ -43,7 +43,7 @@ x-images:
       PHP_MAX_WORKERS: "${PHP_MAX_WORKERS-10}"
       PHP_MAX_SPARE_WORKERS: "${PHP_MAX_SPARE_WORKERS-5}"
       PHP_MIN_SPARE_WORKERS: "${PHP_MIN_SPARE_WORKERS-3}"
-      PHP_MEMORY_LIMIT: "${PHP_MEMORY_LIMIT:-128M}"
+      PHP_MEMORY_LIMIT: "${PHP_MEMORY_LIMIT:-{{cookiecutter.php_memory_limit}}}"
       # This need to be changed in productionc
       MAILCATCHER_USER: "${MAILCATCHER_USER-mailcatcher}"
       MAILCATCHER_PASSWORD: "${MAILCATCHER_PASSWORD-mailcatcher}"
@@ -201,7 +201,6 @@ services:
   backup:
     <<: [ *env ]
     image: "{{cookiecutter.dbsmartbackup_image}}"
-    restart: always
     volumes:
       - backupdb-dumps:/var/db_smart_backup/
       - backupdb-logs:/var/db_smart_backup/logs/

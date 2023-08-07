@@ -100,6 +100,7 @@
     "with_yarn": "",
     "with_php_status": "y",
     "php_status": "/status",
+    "php_memory_limit": "128M",
     "with_nginx_status": "y",
     "nginx_status": "/nginx-status",
     "no_cache_cookie": "NO_CACHE",
