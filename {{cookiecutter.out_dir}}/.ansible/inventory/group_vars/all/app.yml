@@ -15,3 +15,4 @@ cops_{{cookiecutter.app_type}}_dotenv_extra: |-
 cops_symfony_http_protect_user: "root"
 cops_symfony_http_protect_password: "rootroot"
 cops_symfony_php_memory_limit: "{{cookiecutter.php_memory_limit}}"
+cops_symfony_migrate: {{cookiecutter.doctrine_migrate and "true" or "false" }}

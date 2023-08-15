@@ -359,7 +359,7 @@ services: &services
     ( update-ca-certificates || true )
     ( set +x;while true;do if [ -e ${GARBAGE_COLLECT_FLAG} ];then \
         echo "Run garbage colect"; \
-        /entrypoint.sh garbage-collect /etc/docker/registry/config.yml -m --dry-run=false; \
+        /entrypoint.sh garbage-collect /etc/docker/registry/config.yml -m --dry-run=false || true; \
         ( rm -f ${GARBAGE_COLLECT_FLAG} || true; );  \
       fi;sleep 1;done; )&
     ( unset REGISTRY_AUTH_HTPASSWD_REALM REGISTRY_AUTH_HTPASSWD_PATH \

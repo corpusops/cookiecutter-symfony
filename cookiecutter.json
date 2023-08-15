@@ -137,5 +137,6 @@
     "sphinx_theme_path": "",
     "sphinx_copyright": "FIXME",
     "sphinx_author": "FIXME",
+    "doctrine_migrate": "y",
     "no_tags_pipelines": "y"
 }
