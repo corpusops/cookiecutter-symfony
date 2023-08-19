@@ -42,6 +42,7 @@ services:
 {%- endif %}
 {%- if cookiecutter.db_mode.startswith('post') %}
   setup-postgres:
+    restart: unless-stopped
 {%- elif cookiecutter.db_mode.startswith('m') %}
   setup-mysql:
     restart: unless-stopped
