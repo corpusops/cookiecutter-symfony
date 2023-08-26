@@ -64,7 +64,7 @@ x-images:
     - db
     - setup-{{db_tag}}
 {%-if cookiecutter.with_redis%}
-		- redis
+    - redis
 {%-endif%}
     working_dir: /code/app
     command:
