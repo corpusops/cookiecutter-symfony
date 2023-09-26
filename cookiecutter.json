@@ -140,5 +140,6 @@
     "sphinx_copyright": "{{cookiecutter.lname}}",
     "sphinx_author": "{{cookiecutter.lname}}",
     "doctrine_migrate": "y",
-    "no_tags_pipelines": "y"
+    "no_tags_pipelines": "y",
+    "symfony_dispatch_command": "/code/app/bin/console dispatcher:run"
 }

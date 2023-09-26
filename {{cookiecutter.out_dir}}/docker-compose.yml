@@ -8,6 +8,7 @@ x-images:
       # docker variables
       # parsed/replaced in CI via env-subst
       SYMFONY_NAME: "${SYMFONY_NAME-{{cookiecutter.symfony_project_name}}}"
+      SYMFONY_DISPATCH_COMMAND: "${SYMFONY_DISPATCH_COMMAND:-{{cookiecutter.symfony_dispatch_command}}}"
       NGINX_SERVERNAME: "${NGINX_SERVERNAME-{{cookiecutter.local_domain}}}"
       NGINX_SERVER_ALIASES: "${NGINX_SERVER_ALIASES-www.{{cookiecutter.local_domain}}}"
 {%- if 'post' in cookiecutter.db_mode %}
