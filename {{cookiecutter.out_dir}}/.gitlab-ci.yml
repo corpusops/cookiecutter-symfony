@@ -206,6 +206,8 @@ before_script: &top_before_script
    lcu() { u=$1;shift;vv curl -sku gitlab:gitlab "$@" https://localhost:5000/v2/$u; }
    vvrgc() { vv registry garbage-collect $@ ${c}; }
    #
+   retry_cmd() { retries=${retries:-10};sleep=${sleep:-1};i=0;until ( "$@" );do i=$(($i+1));test $i -gt ${retries} && return 1;sleep ${sleep};done;return 0; }
+   #
    wait_ready() { s="${s:-0.5}";t="${t:-800}";start=$(date +%s);until ("$@";);do
     d=$(date +%s);dt=$((${d}-${start}));if [ ${dt} -gt ${t} ];then log "  no more retries: $@";return 1;fi
     if [ $(( ${dt} % ${CI_OPEN_MSG_DELAY:-240} )) -eq 0 ];then log "  CI keeps open";fi
@@ -548,8 +550,8 @@ services_tower: &services_tower
 {{docscomment}}      vv docker inspect ${BUILDCACHE_CURRENT_DOCKER_IMAGE_DOCS} >/dev/null
 {{docscomment}}      vv docker tag ${BUILDCACHE_CURRENT_DOCKER_IMAGE_DOCS} ${BUILDCACHE_DOCKER_IMAGE_DOCS}
 {{docscomment}}      vv docker tag ${BUILDCACHE_CURRENT_DOCKER_IMAGE_DOCS} ${BUILDCACHE_REF_DOCKER_IMAGE_DOCS}
-{{docscomment}}      ( echo $CI_COMMIT_REF_NAME | egrep -q "$TAGGUABLE_IMAGE_BRANCH$" ) && vv docker push ${BUILDCACHE_DOCKER_IMAGE_DOCS}
-{{docscomment}}      ( echo $CI_COMMIT_REF_NAME | egrep -q "^$MAIN_BRANCH$") && vv docker push ${BUILDCACHE_REF_DOCKER_IMAGE_DOCS}
+{{docscomment}}      ( echo $CI_COMMIT_REF_NAME | egrep -q "$TAGGUABLE_IMAGE_BRANCH$" ) && vv retry_cmd docker push ${BUILDCACHE_DOCKER_IMAGE_DOCS}
+{{docscomment}}      ( echo $CI_COMMIT_REF_NAME | egrep -q "^$MAIN_BRANCH$") && vv retry_cmd docker push ${BUILDCACHE_REF_DOCKER_IMAGE_DOCS}
 {{docscomment}}  - &docs_build ./docs/build.sh
 {{docscomment}}  - &docs_save tar czf "${DOCS_TARBALL}" ${DOCS_FOLDERS}
 {{docscomment}}  - *writeokstatus
@@ -717,7 +719,7 @@ build_images: &build_images
     ret=$(mktemp)
     for i in "$(awk '"'"'{print $2}'"'"' ${f}|egrep    -- ${BUILDCACHE_REGISTRY})" \
              "$(awk '"'"'{print $2}'"'"' ${f}|egrep -v -- ${BUILDCACHE_REGISTRY})";do
-      imgs=$(eval echo ${i});(for img in ${imgs};do vv docker push ${img};echo "$? ${img}">>${ret};done)&
+      imgs=$(eval echo ${i});(for img in ${imgs};do vv retry_cmd docker push ${img};echo "$? ${img}">>${ret};done)&
     done
     wait
     log "END push:"
@@ -792,7 +794,7 @@ teardown_workspace: &teardown_workspace
                         | grep 'docker-content-digest:' | awk '{print $3}' ) || true )
         if [ "x${digest}" != "x" ];then
           log "deleting ${dimg}(${digest})";
-          printf "FROM scratch\nLABEL deleter=$t\n\n"|docker build -t ${dimg} -;docker push ${dimg};
+          printf "FROM scratch\nLABEL deleter=$t\n\n"|docker build -t ${dimg} -;retry_cmd docker push ${dimg};
           rcu ${repo}/manifests/${digest} -X DELETE || true;
         fi;
       fi;
@@ -1017,7 +1019,7 @@ promote_all_envs: &promote_all_envs
         adddockertag ${t} latest ${vt}
       fi
     done
-    for i in $tags;do vv docker push ${i};done
+    for i in $tags;do vv retry_cmd docker push ${i};done
 
 promote_single_env: &promote_single_env
   <<: [ *promote_all_envs ]
