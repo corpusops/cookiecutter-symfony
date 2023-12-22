@@ -2,7 +2,7 @@
 cops_deploy_ssh_key_paths:
   # replace by your env id used in the host definition inside your former inventory
   deploy:
-    path: local/.ssh/deploy
+    path: "{{'{{'}}'local/.ssh/deploy'|copsf_abspath}}"
     pub: |-
       ssh-rsa xxx deploy
     private: |-
