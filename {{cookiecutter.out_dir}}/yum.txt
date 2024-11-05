@@ -16,7 +16,7 @@ gcc
 gcc-c++
 make
 libxslt-1.1
-{% if 'post' in cookiecutter.db_mode %}postgresql{{ cookiecutter.db_version }}{% endif %}
+{% if 'post' in cookiecutter.db_mode %}postgresql{{ (((cookiecutter.db_version.replace('postgresql', '')|float < 11.0|float)) and 11 or cookiecutter.db_version)|int }}{% endif %}
 {% if 'mysql' in cookiecutter.db_mode %}mysql{{ cookiecutter.db_version }}{% endif %}
 logrotate
 unzip

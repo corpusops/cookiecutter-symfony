@@ -9,7 +9,7 @@ import os
 import subprocess
 
 
-DEPLOY_BR = os.environ.get('DEPLOY_BR', 'stable')
+DEPLOY_BR = os.environ.get('DEPLOY_BR', 'v2')
 use_submodule_for_deploy_code = bool(
     '{{cookiecutter.use_submodule_for_deploy_code}}'.strip())
 
@@ -22,32 +22,36 @@ SYMLINKS_DIRS = {
     "../../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/roles/{{cookiecutter.app_type}}",  #noqa
 }
 SYMLINKS_FILES = {
-    ".ansible/scripts/setup_vaults.sh": "cops_wrapper.sh",  #noqa
-    ".ansible/scripts/setup_corpusops.sh": "cops_wrapper.sh",  #noqa
-    ".ansible/scripts/test.sh": "cops_wrapper.sh",  #noqa
-    ".ansible/scripts/setup_core_variables.sh": "cops_wrapper.sh",  #noqa
-    ".ansible/scripts/call_roles.sh": "cops_wrapper.sh",  #noqa
-    ".ansible/scripts/yamldump.py": "cops_wrapper.sh",  #noqa
     ".ansible/scripts/call_ansible.sh": "cops_wrapper.sh",  #noqa
+    ".ansible/scripts/call_roles.sh": "cops_wrapper.sh",  #noqa
     ".ansible/scripts/edit_vault.sh": "cops_wrapper.sh",  #noqa
     ".ansible/scripts/print_env.sh": "call_ansible.sh",  #noqa
     ".ansible/scripts/setup_ansible.sh": "cops_wrapper.sh",  #noqa
+    ".ansible/scripts/setup_core_variables.sh": "cops_wrapper.sh",  #noqa
+    ".ansible/scripts/setup_corpusops.sh": "cops_wrapper.sh",  #noqa
+    ".ansible/scripts/setup_vaults.sh": "cops_wrapper.sh",  #noqa
+    ".ansible/scripts/test.sh": "cops_wrapper.sh",  #noqa
+    ".ansible/scripts/yamldump.py": "cops_wrapper.sh",  #noqa
+    ".ansible/ssh_sudo": "../{{cookiecutter.deploy_project_dir}}/.ansible/ssh_sudo",  #noqa
     ".ansible/playbooks/ping.yml": "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/ping.yml",  #noqa
     ".ansible/playbooks/haproxy.yml": "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/haproxy.yml",  #noqa
+    ".ansible/playbooks/teleport.yml": "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/teleport.yml",  #noqa
     ".ansible/playbooks/backup.yml": "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/backup.yml",  #noqa
     ".ansible/playbooks/delivery.yml": "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/delivery.yml",  #noqa
     ".ansible/playbooks/app.yml": "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/app.yml",  #noqa
-    ".ansible/playbooks/teleport.yml": "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/teleport.yml",  #noqa
     ".ansible/playbooks/deploy_key_setup.yml":
     "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/deploy_key_setup.yml",  #noqa
     ".ansible/playbooks/deploy_key_teardown.yml":
     "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/deploy_key_teardown.yml",  #noqa
     ".ansible/playbooks/site.yml":
     "../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/site.yml",  #noqa
-    "docs/apt.txt": "../local/symfony-deploy-common/docs/apt.txt",  #noqa
-    "docs/entry.sh": "../local/symfony-deploy-common/docs/entry.sh",  #noqa
-    "docs/requirements.txt": "../local/symfony-deploy-common/docs/requirements.txt",  #noqa
-    "Dockerfile-docs": "./local/symfony-deploy-common/Dockerfile-docs",  #noqa
+    "docs/.env": "../.env",  #noqa
+    "docs/docker.env": "../docker.env",  #noqa
+    "docs/apt.txt": "../{{cookiecutter.deploy_project_dir}}/docs/apt.txt",  #noqa
+    "docs/entry.sh": "../{{cookiecutter.deploy_project_dir}}/docs/entry.sh",  #noqa
+    "docs/requirements.txt": "../{{cookiecutter.deploy_project_dir}}/docs/requirements.txt",  #noqa
+    "docs/Dockerfile": "../{{cookiecutter.deploy_project_dir}}/docs/Dockerfile",  #noqa
+    "Dockerfile-docs": "docs/Dockerfile",  #noqa
     "Dockerfile": "{{cookiecutter.deploy_project_dir}}/Dockerfile-{{cookiecutter.base_os}}",  #noqa
 }
 SYMLINKS = {}
@@ -82,8 +86,13 @@ if [ ! -e "{{cookiecutter.deploy_project_dir}}/.git" ];then
 """.format(**locals())
 EGITSCRIPT = """
 sed="sed";if (uname | grep -E -iq "darwin|bsd");then sed="gsed";fi
-if !($sed --version);then echo $sed not avalaible;exit 1;fi
+if !($sed --version >/dev/null 2>&1 );then echo $sed not avalaible;exit 1;fi
 {%raw%}vv() {{ echo "$@">&2;"$@"; }}{%endraw%}
+{% if cookiecutter.use_submodule_for_deploy_code %}
+dockerfile={{cookiecutter.deploy_project_dir}}/Dockerfile
+{% else %}
+dockerfile=Dockerfile
+{% endif %}
 {% for i in ['dev', 'prod', 'qa', 'preprod', 'staging'] -%}
 {% if not cookiecutter['{0}_host'.format(i)]%}
 git rm -rf \
@@ -95,13 +104,9 @@ rm -rfv \
    src/{{cookiecutter.symfony_project_name}}/settings/instances/{{i}}*
 {% endif %}
 {% endfor %}
-if [ -e Dockerfile ] && [ ! -h Dockerfile ];then
-$sed -i -re \
-   "s/PHP_VER=.*/PHP_VER={{cookiecutter.php_ver}}/g" \
-	Dockerfile
-$sed -i -re \
-	"s/project/{{cookiecutter.symfony_project_name}}/g" \
-	Dockerfile
+if [ -e $dockerfile ] && [ ! -h $dockerfile ];then
+$sed -i -re "s/PHP_VER=.*/PHP_VER={{cookiecutter.php_ver}}/g" $dockerfile
+$sed -i -re "s/project/{{cookiecutter.symfony_project_name}}/g" $dockerfile
 fi
 set +x
 {% if not cookiecutter.use_submodule_for_deploy_code %}
@@ -117,15 +122,27 @@ while read f;do
         "$f"
     fi
 done < <( find -type f|grep -E -v "((^./(\.tox|\.git|local))|/static/)"; )
+$sed -i -re "/\/code\/sys\/\* sys/d" $dockerfile
 {% endif %}
 set -x
-        """
+# strip whitespaces from compose
+$sed -i -re 's/\s+$//g' docker-compose*.yml
+$sed -i -r '/^\s*$/d' docker-compose*.yml
+"""
 
 MOTD = '''
 After reviewing all changes
 do not forget to commit and push your new/regenerated project
 '''
 
+use_bundled_front = bool(
+    '{{cookiecutter.with_bundled_front}}'.strip())
+REMOVE_PATHS = [
+    '.nvmrc',
+    'frontend',
+    'package.json',
+    'webpack.config.js',
+]
 
 def remove_path(i):
     if os.path.exists(i) or os.path.islink(i):
@@ -133,7 +150,7 @@ def remove_path(i):
             os.unlink(i)
         elif os.path.isdir(i):
             remove_tree(i)
-        elif os.path.islink(i):
+        else:
             os.unlink(i)
 
 
@@ -174,6 +191,9 @@ def main():
         s += ('\nsed -i -re '
               '"s/ cron//g" .ansible/playbooks/roles/*/*/*l' )
         {% endif %}
+    if not use_bundled_front:
+        for i in REMOVE_PATHS:
+            remove_path(i)
     s += EGITSCRIPT
     subprocess.check_call(["bash", "-c", s.format(template=TEMPLATE)])
     print(MOTD)

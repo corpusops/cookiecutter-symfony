@@ -1,4 +1,4 @@
-version: '3.7'
+version: '{{cookiecutter.compose_version}}'
 x-images:
   bypass: &bypass
     command: 'sh -c "while true;do echo notstarted;sleep 65000;done"'

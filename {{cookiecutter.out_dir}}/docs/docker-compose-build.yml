@@ -1,0 +1,12 @@
+version: '{{cookiecutter.compose_version}}'
+services:
+  docs:
+    build:
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+        HELPERS: "${HELPERS_IMAGE:-{{cookiecutter.helpers_image}}}"
+        PY_VER: "${DJANGO_PY_VER:-{{cookiecutter.py_ver}}}"
+        BASE: "${DOCS_IMAGE_BASE:-{{cookiecutter.docs_image}}}"
+      context: ".."
+      dockerfile: "Dockerfile-docs"
+

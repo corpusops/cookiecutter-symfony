@@ -1,0 +1,9 @@
+{{'{{'}}- $bd := .Env.BASE_DIR | default "/code" }}
+{{'{{'}}- $pp := .Env.PRIVATE_PATH | default ( print $bd "/app/private" ) }}
+{{'{{'}}- $sc := .Env.SUSPEND_CRONS | default ( print $pp "/SUSPEND_CRONS" ) }}
+MAILTO=""
+# Launching a cron scheduler
+CRONLOG={{'{{'}}$bd}}/private/logs/cron.log
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+{{'{{'}} (((.Env.symfony_cron_run | default "false" )| lower ) | eq  "true" ) | ternary "" "#"  -}}
+* * * * * symfony /bin/bash -c "date -Iseconds>>$CRONLOG;if [ ! -e {{'{{'}}$sc}} ];then {{'{{'}}$bd}}/app/bin/console cron:run >>$CRONLOG 2>&1;fi;date -Iseconds>>$CRONLOG"

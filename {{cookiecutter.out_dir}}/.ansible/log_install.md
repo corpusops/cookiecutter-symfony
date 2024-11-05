@@ -18,18 +18,24 @@
     User root
     ServerAliveInterval 5
     Port {{cookiecutter.dev_port}}
-    {%- if cookiecutter.staging_host%}Host {{cookiecutter.staging_host}}
+    {%- if cookiecutter.staging_host%}
+    Host {{cookiecutter.staging_host}}
     User root
     ServerAliveInterval 5
-    Port {{cookiecutter.staging_port}}{%endif%}
-    {%-if cookiecutter.qa_host %}Host {{cookiecutter.qa_host}}
+    Port {{cookiecutter.staging_port}}
+    {%-endif%}
+    {%-if cookiecutter.qa_host %}
+    Host {{cookiecutter.qa_host}}
     User root
     ServerAliveInterval 5
-    Port {{cookiecutter.qa_port}}{%endif%}
-    {%-if cookiecutter.prod_host %}Host {{cookiecutter.prod_host}}
+    Port {{cookiecutter.qa_port}}
+    {%-endif%}
+    {%-if cookiecutter.prod_host %}
+    Host {{cookiecutter.prod_host}}
     User root
     ServerAliveInterval 5
-    Port {{cookiecutter.prod_port}}{%endif%}
+    Port {{cookiecutter.prod_port}}
+    {%-endif%}
     ```
 
 ## init local deploy
@@ -127,7 +133,7 @@
     gitlab-runner register
     # - https://gitlab.com/
     # - ``<token>`` on https://{{cookiecutter.git_url}}/settings/ci_cd
-    # - tags: ["{{cookiecutter.fname_slug}}-ci"]
+    # - tags: ["{{cookiecutter.runner_tag}}"]
     # - docker
     # - corpusops/ubuntu:18.04
     vim /etc/gitlab-runner/config.toml

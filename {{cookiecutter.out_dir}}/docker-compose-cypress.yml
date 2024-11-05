@@ -1,4 +1,4 @@
-version: '3.7'
+version: '{{cookiecutter.compose_version}}'
 services:
   cypress:
     env_file: [e2e/cypress.env]
@@ -11,9 +11,9 @@ services:
     #  - {{cookiecutter.app_type}}
     #  - nginx
     #  - db
-  {%if cookiecutter.with_redis%}
-    #  - redis
-  {%endif%}
+{%-if cookiecutter.cache_system%}
+    #  - {{cookiecutter.cache_system}}
+{%-endif%}
     command: npx cypress run
     volumes:
     - ./e2e/cypress:/app/cypress

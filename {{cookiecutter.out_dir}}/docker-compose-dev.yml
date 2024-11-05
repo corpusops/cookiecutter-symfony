@@ -1,4 +1,4 @@
-version: '3.7'
+version: '{{cookiecutter.compose_version}}'
 x-images:
   bypass: &bypass
     command: 'sh -c "while true;do echo notstarted;sleep 65000;done"'
@@ -18,28 +18,27 @@ x-images:
       # SDEBUG: "1"
       # NO_STARTUP_LOGS: ""
     volumes: &{{cookiecutter.app_type}}_volumes
+    - ./local/localdir:/local
+    - ./sys:/code/sys
     {%-if cookiecutter.use_submodule_for_deploy_code %}
-      - ./local/symfony-deploy-common/sys/init.sh:/code/init/init.sh
-      - ./local/symfony-deploy-common:/code/local/symfony-deploy-common
+    - ./local/symfony-deploy-common/sys/sudoer:/etc/sudoers.d/${APP_TYPE:-symfony}
+    - ./local/symfony-deploy-common/sys/init.sh:/code/init/init.sh
+    - ./local/symfony-deploy-common:/code/local/symfony-deploy-common
     {%- else%}
-      - ./sys/init.sh:/code/init/init.sh
-      - ./:/code/local/symfony-deploy-common
+    - ./sys/init.sh:/code/init/init.sh
+    - ./:/code/local/symfony-deploy-common
     {%- endif%}
-      - ./sys:/code/sys
-      - ./local:/code/local
-      - ./app:/code/app
-      # remount public/private (named volumes on prod, local remount on dev)
-      # on /code/app/public/files and /code/app/private
-      - ./app/public/files:/code/app/public/files
-      - ./app/public/bundles:/code/app/public/bundles
-      - ./app/private:/code/app/private
-      - ./app/var/cache:/code/app/var/cache
-      # For documentation as symfony can generate rst
-      - ./docs:/code/app/docs
+    - ./local:/code/local
+    - ./app:{{cookiecutter.app_path}}
+    - ./docs:{{cookiecutter.app_path}}/docs
+    - ./app/public:/code/app/public
+    - ./app/public/bundles:/code/app/public/bundles
+    - ./app/public/files:/code/app/public/files
+    - ./docs:/code/docs
 services:
   db:
     ports:
-      - "${SYMFONY_DB_LISTEN:-0.0.0.0}:${SYMFONY_DB_PORT:-{{ cookiecutter.local_direct_db_port }}}:{{cookiecutter.db_port}}"
+    - "${SYMFONY_DB_LISTEN:-0.0.0.0}:${SYMFONY_DB_PORT:-{{ cookiecutter.local_direct_db_port }}}:{{cookiecutter.db_port}}"
   nginx:
     environment:
       <<: [ *{{cookiecutter.app_type}}_env ]
@@ -53,13 +52,12 @@ services:
       - "${SYMFONY_HTTP_LISTEN:-0.0.0.0}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}:${SYMFONY_HTTPS_PORT:-{{cookiecutter.local_https_port}}}"
 {%- endif %}
     volumes:
-      # remount public/private (named volumes on prod, local remount on dev)
-      # on /code/app/public/files and /code/app/private
-      - ./app/public/:/code/app/public
-      - ./app/public/bundles:/code/app/public/bundles:ro
-      - ./app/public/files:/code/app/public/files:ro
-      - ./app/private:/code/app/private:ro
+    - ./app:/code/app:ro
+    - ./app/public:/code/app/public
+    - ./app/public/bundles:/code/app/public/bundles
+    - ./app/public/files:/code/app/public/files
   backup: {<<: [ *bypass ]}
+  log: {<<: [ *bypass ]}
 {%- if not cookiecutter.remove_cron %}
   cron:
     <<: [ *bypass, *{{cookiecutter.app_type}} ]

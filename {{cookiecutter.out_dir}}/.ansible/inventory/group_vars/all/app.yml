@@ -5,8 +5,8 @@ cops_{{cookiecutter.app_type}}_tld_domain: "{{cookiecutter.tld_domain}}"
 cops_{{cookiecutter.app_type}}_mail_domain: "{{ cookiecutter.mail_domain }}"
 cops_{{cookiecutter.app_type}}_docker_image: "{{cookiecutter.docker_image}}"
 cops_{{cookiecutter.app_type}}_gitref: "{{'{{'}}lookup('env', 'CI_COMMIT_TAG_NAME') or lookup('env', 'CI_COMMIT_REF_NAME') or 'latest'}}"
-cops_{{cookiecutter.app_type}}_docker_tag: "{{'{{'}}cops_{{cookiecutter.app_type}}_gitref.replace('master', 'latest')}}"
-{% if 'post' in cookiecutter.db_mode -%}
+cops_{{cookiecutter.app_type}}_docker_tag: "{{'{{'}}cops_{{cookiecutter.app_type}}_gitref.replace('{{cookiecutter.main_branch}}', 'latest')}}"
+{%- if 'post' in cookiecutter.db_mode %}
 cops_{{cookiecutter.app_type}}_postgres_startup_timeout: 45s
 {%- endif %}
 cops_{{cookiecutter.app_type}}_dotenv_extra: |-

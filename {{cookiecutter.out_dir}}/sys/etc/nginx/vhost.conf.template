@@ -7,23 +7,34 @@
 {{'{{-'}} $v := merge $v ( dict "diffie"                      ( .Env.NGINX_DH_FILE | default ( print $v.certspath  "/dhparams.pem" ))        ) }}
 {{'{{-'}} $v := merge $v ( dict "nossl"                       ( .Env.NO_SSL | default "1" )                                                  ) }}
 {{'{{-'}} if not ( .Env.NO_FORCE_SSL | empty ) }}
-{{'{{-'}} $v := merge $v ( dict "noforcessl" .Env.NO_FORCE_SSL ) }}
+{{'{{-'}} $v := merge $v ( dict "noforcessl" .Env.NO_FORCE_SSL                                                                               ) }}
 {{'{{-'}} else }}
-{{'{{-'}} $v := merge $v ( dict "noforcessl" ((eq $v.nossl "1") | ternary "0" "1" )) }}
+{{'{{-'}} $v := merge $v ( dict "noforcessl" ((eq $v.nossl "1") | ternary "0" "1" )                                                           )}}
 {{'{{-'}} end }}
-{{'{{-'}} $v := merge $v ( dict "nostatics"                   ( .Env.NO_STATICS | default "" )                                               ) }}
 {{'{{-'}} $v := merge $v ( dict "server_name"                 ( .Env.NGINX_SERVERNAME | default "localhost" )                                ) }}
+{{'{{-'}} $v := merge $v ( dict "server_aliases"              ( .Env.NGINX_SERVER_ALIASES | default "" )                                     ) }}
 {{'{{-'}} $v := merge $v ( dict "port"                        ( .Env.NGINX_PORT | default "80" )                                             ) }}
 {{'{{-'}} $v := merge $v ( dict "ssl_port"                    ( .Env.NGINX_SSL_PORT | default "443" )                                        ) }}
-{{'{{-'}} $v := merge $v ( dict "server_aliases"              ( .Env.NGINX_SERVER_ALIASES | default "" )                                     ) }}
+{{'{{-'}} $v := merge $v ( dict "redirect_aliases"            ( .Env.NGINX_REDIRECT_ALIASES | default "0" )                                  ) }}
 {{'{{-'}} $v := merge $v ( dict "server_name_in_redirect"     ( .Env.NGINX_SERVERNAME_IN_REDIRECT | default "on" )                           ) }}
 {{'{{-'}} $v := merge $v ( dict "server_name_in_redirect_ssl" ( .Env.NGINX_SERVERNAME_IN_REDIRECT_SSL | default $v.server_name_in_redirect ) ) }}
 {{'{{-'}} $v := merge $v ( dict "real_ip_from_recursive"      ( .Env.NGINX_REAL_IP_FROM_RECURSIVE | default "on" )                           ) }}
 {{'{{-'}} $v := merge $v ( dict "real_ip_from"                ( .Env.NGINX_REAL_IP_FROM | default "10.0.0.0/8 172.16.0.0/12 192.168.0.0/16" )) }}
+{{'{{-'}} $v := merge $v ( dict "real_ip_header"              ( .Env.NGINX_REAL_IP_HEADER | default "x-forwarded-for" )                      ) }}
 {{'{{-'}} $v := merge $v ( dict "ssl_ciphers"                 ( .Env.NGINX_SSL_CIPHERS | default $dciphers )                                 ) }}
-{{'{{-'}} $v := merge $v ( dict "ssl_protocols"               ( .Env.NGINX_SSL_PROTOCOLS | default "TLSv1 TLSv1.1 TLSv1.2" )                 ) }}
-{{'{{-'}} $v := merge $v ( dict "loglevel"                    ( .Env.NGINX_LOGLEVEL | default "crit" )                                       ) }}
-{{'{{-'}} $v := merge $v ( dict "has_mailcatcher"             ( .Env.NGINX_HAS_MAILCATCHER | default "1" )                                   ) -}}
+{{'{{-'}} $v := merge $v ( dict "ssl_protocols"               ( .Env.NGINX_SSL_PROTOCOLS | default "TLSv1 TLSv1.1 TLSv1.2 TLSv1.3" )         ) }}
+{{'{{-'}} $v := merge $v ( dict "log_level"                   ( .Env.NGINX_LOGLEVEL | default "crit" )                                       ) }}
+{{'{{-'}} $v := merge $v ( dict "has_mailcatcher"             ( .Env.NGINX_HAS_MAILCATCHER | default "1" )                                   ) }}
+{{'{{-'}} $v := merge $v ( dict "error_log"                   ( .Env.NGINX_ERROR_LOG  | default "/dev/stdout" )                              ) }}
+{{'{{-'}} $v := merge $v ( dict "access_log"                  ( .Env.NGINX_ACCESS_LOG | default "/dev/stdout" )                              ) }}
+{{'{{-'}} $v := merge $v ( dict "ssl_error_log"               ( .Env.NGINX_SSL_ERROR_LOG  | default "/dev/stdout" )                          ) }}
+{{'{{-'}} $v := merge $v ( dict "ssl_access_log"              ( .Env.NGINX_SSL_ACCESS_LOG | default "/dev/stdout" )                          ) }}
+{{'{{-'}} $v := merge $v ( dict "base_dir"                    ( .Env.BASE_DIR                   | default "/code" )                          ) }}
+{{'{{-'}} $v := merge $v ( dict "app_root"                    ( .Env.NGINX_SYMFONY_APP_ROOT     | default ( print $v.base_dir     "/app")           )) }}
+{{'{{-'}} $v := merge $v ( dict "doc_root"                    ( .Env.NGINX_SYMFONY_DOC_ROOT     | default ( print $v.app_root     "/public")        )) }}
+{{'{{-'}} $v := merge $v ( dict "private_path"                ( .Env.NGINX_SYMFONY_PRIVAVE_PATH | default ( print $v.app_root     "/private")       )) }}
+{{'{{-'}} $v := merge $v ( dict "maintenance_flag"            ( .Env.NGINX_SYMFONY_MAINT_FLAG   | default ( print $v.private_path "/MAINTENANCE")   )) }}
+{{'{{-'}} $v := merge $v ( dict "nostatics"                   ( .Env.NO_STATICS | default "" )                                               ) }}
 
 # optimize internal nginx buffers
 types_hash_max_size 2048;
@@ -39,12 +50,13 @@ proxy_buffers 4 256k;
 proxy_busy_buffers_size 256k;
 
 # logging setup
-log_format custom_combined '"$remote_addr - $remote_user [$time_local] "$request" $status $bytes_sent "$http_referer" "$http_user_agent" "$gzip_ratio"';
+log_format custom_combined '$remote_addr - $remote_user [$time_local] "$request" $status $bytes_sent "$http_referer" "$http_user_agent" "$gzip_ratio"';
 # Define type of requests going to logs (to remove OPTIONS requests for example)
 map $request_method $method_loggable { OPTIONS 0;default 1;}
 map $request_method $restrict_access { OPTIONS off;default "Restricted";}
 
 # activate real_ip logging
+real_ip_header {{'{{'}} $v.real_ip_header }};
 real_ip_recursive {{'{{'}} $v.real_ip_from_recursive }};
 {{'{{'}} range $v.real_ip_from | splitList " " }}
 set_real_ip_from {{'{{'}} . }};
@@ -88,18 +100,55 @@ types {
     text/cache-manifest                   appcache;
 }
 
-{{'{{'}}if ( .Env.DRUPAL_ENV_NAME | default "" | eq "prod" ) }}
+{{'{{'}}if ( .Env.SYMFONY_ENV_NAME | default "" | eq "prod" ) }}
 server_tokens off;
 {{'{{'}} end }}
+
+{{'{{'}} define "fastcgipass" }}
+            fastcgi_split_path_info ^(.+\.php)(/.+)$;
+            fastcgi_param SCRIPT_FILENAME   $document_root$fastcgi_script_name;
+            fastcgi_param SCRIPT_NAME       $fastcgi_script_name;
+            fastcgi_param QUERY_STRING      $query_string;
+            fastcgi_param REQUEST_METHOD    $request_method;
+            fastcgi_param CONTENT_TYPE      $content_type;
+            fastcgi_param CONTENT_LENGTH    $content_length;
+            fastcgi_param REQUEST_URI       $request_uri;
+            fastcgi_param DOCUMENT_URI      $document_uri;
+            fastcgi_param DOCUMENT_ROOT     $document_root;
+            fastcgi_param SERVER_PROTOCOL   $server_protocol;
+            fastcgi_param REQUEST_SCHEME    $scheme;
+            fastcgi_param HTTPS             $https if_not_empty;
+            fastcgi_param GATEWAY_INTERFACE CGI/1.1;
+            fastcgi_param SERVER_SOFTWARE   nginx/$nginx_version;
+            fastcgi_param REMOTE_ADDR       $remote_addr;
+            fastcgi_param REMOTE_PORT       $remote_port;
+            fastcgi_param SERVER_ADDR       $server_addr;
+            fastcgi_param SERVER_PORT       $forwarded_server_port;
+            fastcgi_param SERVER_NAME       $http_host;
+            fastcgi_param HTTPS             $fastcgi_ssl_toggle;
+{{'{{'}} end }}
+
+{{'{{'}} define "proxydefines" }}
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-NginX-Proxy true;
+    proxy_set_header x-forwarded-proto $http_x_forwarded_proto_resolved;
+    proxy_set_header x-forwarded-ssl $http_x_forwarded_ssl_resolved;
+    proxy_set_header x-forwarded-protocol $http_x_forwarded_protocol_resolved;
+    proxy_buffering off;
+    proxy_http_version 1.1;
+{{'{{'}} end }}
+
 
 server {
     listen {{'{{'}}$v.port}};
 
-    server_name {{'{{'}} $v.server_name }}{{'{{'}}if $v.server_aliases }}{{'{{'}}$v.server_aliases}}{{'{{'}}end}};
+    server_name {{'{{'}} $v.server_name }}{{'{{'}}if $v.server_aliases }} {{'{{'}}$v.server_aliases}}{{'{{'}}end}};
     server_name_in_redirect {{'{{'}} $v.server_name_in_redirect }};
 
-    error_log  /logs/symfony-error.log  {{'{{'}} $v.loglevel }};
-    access_log /logs/symfony-access.log custom_combined if=$method_loggable;
+    error_log  {{'{{'}} $v.error_log }} {{'{{'}} $v.log_level }};
+    access_log {{'{{'}} $v.access_log }} custom_combined if=$method_loggable;
 
     {{'{{'}} define "vhost" }}
     {{'{{'}} if .Env.SYMFONY__HTTP_PROTECT_PASSWORD }}
@@ -139,25 +188,20 @@ server {
     gzip_http_version 1.1;
     gzip_min_length 256;
     gzip_comp_level 4;
+    gzip_disable "msie6";
     client_max_body_size 100M;
+
     # feed the map variables for ssl up
     set $http_x_ssl                $http_x_ssl_resolved;
     set $http_x_forwarded_proto    $http_x_forwarded_proto_resolved;
     set $http_x_forwarded_ssl      $http_x_forwarded_ssl_resolved;
     set $http_x_forwarded_protocol $http_x_forwarded_protocol_resolved;
     # set $scheme                  $forwarded_ssl_scheme;
-    # proxy params headers
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-NginX-Proxy true;
-    proxy_set_header x-forwarded-proto $http_x_forwarded_proto_resolved;
-    proxy_set_header x-forwarded-ssl $http_x_forwarded_ssl_resolved;
-    proxy_set_header x-forwarded-protocol $http_x_forwarded_protocol_resolved;
-    proxy_buffering off;
-    proxy_http_version 1.1;
 
-    root {{ cookiecutter.public_path }};
+    # proxy params headers
+    {{'{{'}} template "proxydefines" . }}
+
+    root {{'{{'}} .doc_root }}/;
 
     error_page 502 @maintenance;
     error_page 503 {%if cookiecutter.maintenance_no_503%}=200{% endif %} @maintenance;
@@ -193,7 +237,7 @@ server {
     location / {
 
         # check maintenance marker on shared directory
-        if (-f  /code/app/private/MAINTENANCE) {
+        if (-f {{'{{'}} .maintenance_flag }}) {
             return 503;
         }
 
@@ -208,38 +252,16 @@ server {
         # build SCRIPT_FILENAME (SCRIPT_NAME) and PATH_INFO
         # for requests in the form /foo/index.php/titi/42
         # PATH_INFO is /titi/42
-        fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        # NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        fastcgi_param SCRIPT_NAME $fastcgi_script_name;
-
-        # Common
-        fastcgi_param   QUERY_STRING            $query_string;
-        fastcgi_param   REQUEST_METHOD          $request_method;
-        fastcgi_param   CONTENT_TYPE            $content_type;
-        fastcgi_param   CONTENT_LENGTH          $content_length;
-        fastcgi_param   REQUEST_URI             $request_uri;
-        fastcgi_param   DOCUMENT_URI            $document_uri;
-        fastcgi_param   DOCUMENT_ROOT           $document_root;
-        fastcgi_param   SERVER_PROTOCOL         $server_protocol;
-        fastcgi_param   REQUEST_SCHEME          $scheme;
-        fastcgi_param   HTTPS                   $https if_not_empty;
-        fastcgi_param   GATEWAY_INTERFACE       CGI/1.1;
-        fastcgi_param   SERVER_SOFTWARE         nginx/$nginx_version;
-        fastcgi_param   REMOTE_ADDR             $remote_addr;
-        fastcgi_param   REMOTE_PORT             $remote_port;
-        fastcgi_param   SERVER_ADDR             $server_addr;
-        fastcgi_param   SERVER_PORT             $forwarded_server_port;
-        fastcgi_param   SERVER_NAME             $http_host;
-        fastcgi_param   HTTPS                   $fastcgi_ssl_toggle;
+	{{'{{'}} template "fastcgipass" . }}
         # X-SendFile management
         fastcgi_param  HTTP_X-Sendfile-Type     X-Accel-Redirect;
-        fastcgi_param  HTTP_X-Accel-Mapping    private://=/private-files-x-accel-redirect/,{{ cookiecutter.private_path }}=/private-files-x-accel-redirect/,/tmp/=/tmp-files-x-accel-redirect/;
+        fastcgi_param  HTTP_X-Accel-Mapping    private://=/private-files-x-accel-redirect/,{{'{{'}}.private_path}}=/private-files-x-accel-redirect/,/tmp/=/tmp-files-x-accel-redirect/;
         # PHP only, required if PHP was built with --enable-force-cgi-redirect
         fastcgi_param   REDIRECT_STATUS         200;
         # Buffers
         fastcgi_buffers 256 8k;
         fastcgi_buffer_size 8k;
+
         fastcgi_intercept_errors on;
         ## allow 4 hrs - pass timeout responsibility to upstream.
         fastcgi_read_timeout 14400;
@@ -269,7 +291,7 @@ server {
         # With X-Sendfile headers in responses.
         # But a direct access from a browser will launch a 404
         internal;
-        alias {{ cookiecutter.private_path }};
+        alias {{'{{'}}.private_path }}/;
     }
     location /tmp-files-x-accel-redirect/ {
         internal;
@@ -287,7 +309,7 @@ server {
     listen {{'{{'}}$v.ssl_port}} ssl;
     ssl on;
     server_name_in_redirect {{'{{'}} $v.server_name_in_redirect_ssl }};
-    server_name             {{'{{'}} $v.server_name }}{{'{{'}}if $v.server_aliases }}{{'{{'}}$v.server_aliases}}{{'{{'}}end}};
+    server_name             {{'{{'}} $v.server_name }}{{'{{'}}if $v.server_aliases }} {{'{{'}}$v.server_aliases}}{{'{{'}}end}};
     ssl_ciphers             {{'{{'}} $v.ssl_ciphers }};
     ssl_protocols           {{'{{'}} $v.ssl_protocols }};
     ssl_certificate         {{'{{'}} $v.cert }};
@@ -296,8 +318,8 @@ server {
     ssl_session_timeout 10m;
     ssl_prefer_server_ciphers on;
     ssl_dhparam {{'{{'}} $v.diffie }};
-    error_log  /logs/ssl-symfony-error.log  crit;
-    access_log /logs/ssl-symfony-access.log custom_combined if=$method_loggable;
+    error_log  {{'{{'}} $v.ssl_error_log}} {{'{{'}} $v.log_level }};
+    access_log {{'{{'}} $v.ssl_access_log}} custom_combined if=$method_loggable;
     {{'{{'}} template "vhost" $v }}
 }
 {{'{{'}} end }}

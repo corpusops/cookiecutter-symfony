@@ -27,7 +27,7 @@ fi
 if [ -e "$out" ];then vv rm -rf "$out";fi
 vv cookiecutter --no-input -o "$out" -f "$u" \
     {% for i, val in cookiecutter.items() %}{% if
-        i not in ['_template']%}{{i}}="{{val.replace('$', '\$')}}" \
+        i not in ['_output_dir', 'out_dir', '_template']%}{{i}}="{{val.replace('$', '\$')}}" \
     {%endif%}{%endfor %} "$@"
 
 # to finish template loop
@@ -37,6 +37,7 @@ dvv rsync -aA \
     --include local/regen.sh \
     --exclude "local/*" --exclude lib \
     $( if [ -e ${out2}/.git ];then echo "--exclude .git";fi; ) \
+    $( if [ -L ${out2}/Dockerfile ];then echo "--exclude Dockerfile";fi; ) \
     "$out/" "${out2}/"
 
 ( cd "$out2" && git add -f local/regen.sh || /bin/true)

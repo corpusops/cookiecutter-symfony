@@ -1,4 +1,4 @@
-version: '3.7'
+version: '{{cookiecutter.compose_version}}'
 x-images:
   env: &env {env_file: [.env, docker.env]}
   {{cookiecutter.app_type}}: &{{cookiecutter.app_type}}
@@ -14,19 +14,6 @@ x-images:
         PHP_VER_NO_DOT: "${PHP_VER_NO_DOT:-{{cookiecutter.php_ver.replace('.', '') }}}"
         COMPOSER_VERSION: "${COMPOSER_VERSION:-{{cookiecutter.composer_ver}}}"
 services:
-{%-if not cookiecutter.remove_doc%}
-  docs:
-    <<: [ *env, *{{cookiecutter.app_type}} ]
-    image: "${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE}:${{'{'}}{{cookiecutter.app_type.upper()}}_IMAGE_VERSION}-docsbuilder"
-    build: {args: {<<: [ *args ], PY_VER: "${PY_VER:-3.8}", BASE: "${DOCS_IMAGE_BASE:-{{cookiecutter.ubuntu_image}}}"}, context: ".", dockerfile: "Dockerfile-docs"}
-    volumes:
-    - ./docs:/code/docs.host
-    - ./{{cookiecutter.docs_folder}}:/out
-    - ./local:/code/local
-    environment:
-      BUILDDIR: "${BUILDDIR:-/out}"
-      SOURCEDIR: "${SOURCEDIR:-/code/docs.host}"
-{%-endif%}
 {%- if not cookiecutter.remove_cron %}
   cron: {<<: [ *{{cookiecutter.app_type}} ]}
 {%-endif%}

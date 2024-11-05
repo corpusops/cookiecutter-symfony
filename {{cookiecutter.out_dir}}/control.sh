@@ -53,7 +53,7 @@ VENV=../venv
 APP={{cookiecutter.app_type}}
 APP_USER=${APP_USER:-${APP}}
 APP_CONTAINER=${APP_CONTAINER:-${APP}}
-APP_CONTAINERS="^($APP_CONTAINER|celery)"
+APP_CONTAINERS="^($APP_CONTAINER)"
 DEBUG=${DEBUG-}
 NO_BACKGROUND=${NO_BACKGROUND-}
 FORCE_OSX_SYNC=${FORCE_OSX_SYNC-}
@@ -540,9 +540,10 @@ do_osx_sync() {
 
 #  [NO_BUILD=] do_make_docs: daemon to sync local files inside docker containers (volumes to be exact)
 do_make_docs() {
-    if [[ -z ${NO_BUILD-} ]];then do_dbcompose build docs;fi
+    if [[ -z ${NO_BUILD-} ]];then COMPOSE_FILE_RUN="docs/docker-compose.yml:docs/docker-compose-build.yml" do_dcompose build docs;fi
     # by default container entrypoint sync data to output dir
-    do_dbcompose run --rm \
+    COMPOSE_FILE_RUN="docs/docker-compose.yml" do_dcompose run --rm \
+        -e NO_INSTALL=${NO_INSTALL-1} \
         -e NO_BUILD=${NO_BUILD-} \
         -e NO_INIT=${NO_HTML-} \
         -e NO_CLEAN=${NO_CLEAN-} \
@@ -560,6 +561,7 @@ do_main() {
     local args=${@:-usage}
     local actions="up_corpusops|shell|usage|install_docker|setup_corpusops|open_perms_valve"
     actions="$actions|yamldump|stop|usershell|exec|userexec|dexec|duserexec|dcompose|dbcompose|ps|psql|mysql"
+
     actions="$actions|init|up|fg|pull|build|buildimages|down|rm|run"
     actions="$actions|cypress_open|cypress_run|cypress_open_local|cypress_open_dev|cypress_run_local|cypress_run_dev"
     actions_symfony="osx_sync|server|tests|test|tests_debug|test_debug|coverage|linting|console|php|make_docs|doc"
