@@ -8,7 +8,7 @@ All following commands must be run only once at project installation.
 ## TL;LR
 ```bash
 git clone --recursive {{cookiecutter.git_project_url}} # choose between ssh and http
-{%-if cookiecutter.use_submodule_for_deploy_code-%}
+{%-if cookiecutter.use_submodule_for_deploy_code%}
 cd {{cookiecutter.git_project}}
 git submodule init # only the fist time
 git submodule update --recursive
@@ -43,7 +43,8 @@ sudo sed  -i -re "/{{cookiecutter.local_domain }}/ d;$ a 127.0.0.1 {{cookiecutte
 
 ```bash
 git clone --recursive {{cookiecutter.git_project_url}} # choose between ssh and http
-{%-if cookiecutter.use_submodule_for_deploy_code-%}cd {{cookiecutter.git_project}}
+{%-if cookiecutter.use_submodule_for_deploy_code%}
+cd {{cookiecutter.git_project}}
 git submodule init # only the fist time
 git submodule update --recursive
 {%-endif%}

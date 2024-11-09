@@ -22,6 +22,10 @@ SYMLINKS_DIRS = {
     "../../../{{cookiecutter.deploy_project_dir}}/.ansible/playbooks/roles/{{cookiecutter.app_type}}",  #noqa
 }
 SYMLINKS_FILES = {
+    "app/bin/base.sh": "../../init/sbin/base.sh",  #noqa
+    "app/bin/composer.sh": "../../init/sbin/composer.sh",  #noqa
+    "app/bin/composerinstall": "../../init/sbin/composerinstall",  #noqa
+    "app/bin/composerinstall.sh": "../../init/sbin/composerinstall.sh",  #noqa
     ".ansible/scripts/call_ansible.sh": "cops_wrapper.sh",  #noqa
     ".ansible/scripts/call_roles.sh": "cops_wrapper.sh",  #noqa
     ".ansible/scripts/edit_vault.sh": "cops_wrapper.sh",  #noqa
