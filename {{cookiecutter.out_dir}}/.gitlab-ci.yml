@@ -627,6 +627,7 @@ force_build_ci_images: &force_build_ci_images
     # code is on the services entrypoints to upstream the hosts block to their relative /etc/hosts
     if ( grep -q "\snginx" /etc/hosts );then echo "$(grep "\snginx" /etc/hosts|awk '{print $1}') $NGINX_SERVERNAME" >>/etc/hosts;fi
     grep -E "^[^#].*\s($NGINX_SERVERNAME|db|mysql|cache|redis|varnish|nginx|celery|memcach|cron|mailcatcher)" /etc/hosts >> "${COMMON_HOSTS_FILE}.tmp"
+    if ! ( ip a &>/dev/null );then if (apt-get --version >/dev/null 2>&1);then apt update -yqq && apt-get install -y iproute2;fi;fi
     export {{cookiecutter.app_type.upper()}}_IP="${FORCED_{{cookiecutter.app_type.upper()}}_IP:-$(ip -4 r get 8.8.8.8|grep src|awk '{print $7}')}"
     echo "${{cookiecutter.app_type.upper()}}_IP cron {{cookiecutter.app_type}}" >> "${COMMON_HOSTS_FILE}.tmp"
     mv "${COMMON_HOSTS_FILE}.tmp" "${COMMON_HOSTS_FILE}"

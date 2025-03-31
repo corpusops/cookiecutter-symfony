@@ -5,6 +5,7 @@ curl
 gettext
 git
 groff
+iproute2
 libxslt1.1
 logrotate
 openssl
